@@ -242,6 +242,17 @@
   .m-more-content { margin-top: 6px; font-size: 11.5px; color: var(--text-secondary); background: var(--surface-1); border-radius: 6px; padding: 8px; display: none; white-space: pre-wrap; }
   .m-more-content.open { display: block; }
 
+  .prio-text { font-size: 13px; color: var(--text-secondary); line-height: 1.6; margin: 0 0 10px; max-width: 900px; }
+  .prio-text b { color: var(--text-primary); }
+  .prio-subtitle { font-size: 14.5px; margin: 14px 0 2px; font-weight: 700; }
+  .oferta-tag {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 10.5px; font-weight: 700; padding: 2px 8px; border-radius: 999px;
+    margin-left: 8px;
+  }
+  .oferta-tag.arriendo { background: color-mix(in srgb, var(--accent) 18%, transparent); color: var(--accent); }
+  .oferta-tag.albergue { background: color-mix(in srgb, var(--status-warning) 20%, transparent); color: var(--status-warning); }
+
   .footnote {
     font-size: 12px; color: var(--text-secondary); line-height: 1.5;
     background: var(--card-bg); border: 1px solid var(--border);
@@ -342,6 +353,19 @@
     </div>
   </div>
   <div class="card-grid" id="card-grid"></div>
+</div>
+
+<div class="panel" id="prio-panel">
+  <h2>Priorización de subsidios de arrendamiento</h2>
+  <p class="prio-text">Como propuesta para priorizar la entrega del subsidio de arrendamiento temporal, se tuvieron en cuenta tres criterios: primero, la magnitud del daño a la vivienda, dándole más peso a las viviendas destruidas y a los edificios colapsados por ser los que obligan a una reubicación inmediata; segundo, la gravedad humana reportada (fallecidos y heridos), que sirve de respaldo en los municipios donde todavía no se ha completado el censo de familias y personas; y tercero, el tipo de mercado de vivienda del municipio, separando los que tienen oferta de arriendo cercana (donde el subsidio de arrendamiento es viable) de los rurales dispersos (donde lo realista es un albergue temporal, no un arriendo).</p>
+  <p class="prio-text">El índice se construyó combinando, por municipio y por departamento, tres componentes llevados a una escala de 0 a 1 frente al máximo nacional de cada uno: <b>50% viviendas destruidas</b>, <b>25% edificios colapsados</b> y <b>25% fallecidos + heridos</b>. El promedio ponderado de los tres se expresa en una escala de 0 a 100 para facilitar la lectura.</p>
+  <div id="prio-view-header" class="view-header" style="display:none;">
+    <button class="back-btn" id="prio-btn-back">← Volver a departamentos</button>
+    <h2 id="prio-view-title"></h2>
+  </div>
+  <h3 id="prio-rank-title" class="prio-subtitle">Departamentos por índice de priorización</h3>
+  <div class="panel-sub" id="prio-rank-sub">Índice compuesto 0-100 · clic para ver el detalle municipal</div>
+  <div class="rank-list" id="prio-rank-list"></div>
 </div>
 
 <div class="footnote">
@@ -2022,6 +2046,107 @@
     if (state.depto) renderMunicipioMapView(); else renderDeptoMapView();
   }
 
+  // ---------- priorización de subsidios ----------
+  // proxy simple de "tiene oferta de arriendo cercana": capitales de departamento y
+  // algunas cabeceras urbanas grandes que aparecen en el reporte. Todo lo demás se
+  // asume rural disperso (candidato a albergue temporal en vez de arriendo).
+  var MUNICIPIOS_CON_OFERTA = {
+    "ANTIOQUIA": ["MEDELLIN"],
+    "BOLIVAR": ["CARTAGENA"],
+    "CALDAS": ["MANIZALES"],
+    "CAUCA": ["POPAYAN"],
+    "CHOCO": ["QUIBDO"],
+    "CUNDINAMARCA": ["SOACHA", "FACATATIVA", "ZIPAQUIRA", "CHIA"],
+    "HUILA": ["NEIVA"],
+    "NORTE DE SANTANDER": ["CUCUTA"],
+    "PUTUMAYO": ["MOCOA"],
+    "QUINDIO": ["ARMENIA"],
+    "RISARALDA": ["PEREIRA", "DOSQUEBRADAS"],
+    "SUCRE": ["SINCELEJO"],
+    "TOLIMA": ["IBAGUE"],
+    "VALLE DEL CAUCA": ["CALI", "BUENAVENTURA", "PALMIRA", "TULUA", "CARTAGO"]
+  };
+  function tieneOferta(r) {
+    var lista = MUNICIPIOS_CON_OFERTA[r.deptoNormalizado] || [];
+    return lista.indexOf(normalizeMunicipio(r.municipio)) !== -1;
+  }
+
+  var prioMax = { viviendasDestruidas: 0, edificiosColapsados: 0, victimas: 0 };
+  ROWS.filter(function (r) { return !r.esAgregadoDepartamental; }).forEach(function (r) {
+    prioMax.viviendasDestruidas = Math.max(prioMax.viviendasDestruidas, r.viviendasDestruidas || 0);
+    prioMax.edificiosColapsados = Math.max(prioMax.edificiosColapsados, r.edificiosColapsados || 0);
+    prioMax.victimas = Math.max(prioMax.victimas, (r.fallecidos || 0) + (r.heridos || 0));
+  });
+  var prioMaxDept = { viviendasDestruidas: 0, edificiosColapsados: 0, victimas: 0 };
+  DEPTS.forEach(function (d) {
+    prioMaxDept.viviendasDestruidas = Math.max(prioMaxDept.viviendasDestruidas, d.viviendasDestruidas || 0);
+    prioMaxDept.edificiosColapsados = Math.max(prioMaxDept.edificiosColapsados, d.edificiosColapsados || 0);
+    prioMaxDept.victimas = Math.max(prioMaxDept.victimas, (d.fallecidos || 0) + (d.heridos || 0));
+  });
+
+  function indicePriorizacion(rec, max) {
+    var vd = (rec.viviendasDestruidas || 0) / (max.viviendasDestruidas || 1);
+    var ec = (rec.edificiosColapsados || 0) / (max.edificiosColapsados || 1);
+    var vi = ((rec.fallecidos || 0) + (rec.heridos || 0)) / (max.victimas || 1);
+    return Math.round((0.5 * vd + 0.25 * ec + 0.25 * vi) * 100);
+  }
+
+  var prioState = { depto: "" };
+
+  function renderPrio() {
+    var title = document.getElementById("prio-rank-title");
+    var sub = document.getElementById("prio-rank-sub");
+    var list = document.getElementById("prio-rank-list");
+    var viewHeader = document.getElementById("prio-view-header");
+    var viewTitle = document.getElementById("prio-view-title");
+
+    var entries;
+    if (!prioState.depto) {
+      viewHeader.style.display = "none";
+      title.textContent = "Departamentos por índice de priorización";
+      sub.textContent = "Índice compuesto 0-100 · clic para ver el detalle municipal";
+      entries = DEPTS.map(function (d) {
+        return { key: d.departamento, name: d.departamento, value: indicePriorizacion(d, prioMaxDept), rec: d };
+      });
+    } else {
+      viewHeader.style.display = "flex";
+      viewTitle.textContent = prioState.depto;
+      title.textContent = "Municipios de " + prioState.depto + " por índice de priorización";
+      sub.innerHTML = "Índice compuesto 0-100 · " + '<span class="oferta-tag arriendo">Arriendo</span> con oferta de mercado cercana, ' + '<span class="oferta-tag albergue">Albergue</span> rural disperso';
+      var pool = ROWS.filter(function (r) { return r.departamento === prioState.depto && !r.esAgregadoDepartamental; });
+      entries = pool.map(function (r) {
+        return { key: r.municipio, name: r.municipio, value: indicePriorizacion(r, prioMax), rec: r, oferta: tieneOferta(r) };
+      });
+    }
+
+    entries.sort(function (a, b) { return b.value - a.value; });
+
+    list.innerHTML = "";
+    if (!entries.length) {
+      list.innerHTML = '<div class="empty-state">Sin resultados.</div>';
+      return;
+    }
+    var max = Math.max.apply(null, entries.map(function (e) { return e.value; })) || 1;
+    entries.forEach(function (e) {
+      var row = document.createElement("div");
+      row.className = "rank-row" + (e.value <= 0 ? " is-zero" : "");
+      var tagHtml = prioState.depto ? ('<span class="oferta-tag ' + (e.oferta ? "arriendo" : "albergue") + '">' + (e.oferta ? "Arriendo" : "Albergue") + "</span>") : "";
+      row.innerHTML =
+        '<div class="rank-label"><span class="name">' + escapeHtml(e.name) + tagHtml + "</span>" +
+        '<span class="val">' + e.value + "</span></div>" +
+        '<div class="rank-track"><div class="rank-fill" style="width:' + Math.max(3, (e.value / max) * 100) + "%;background:" + viridisColor(0.3 + 0.6 * (e.value / max)) + '"></div></div>';
+      row.addEventListener("click", function () {
+        if (!prioState.depto) { prioState.depto = e.key; renderPrio(); }
+      });
+      list.appendChild(row);
+    });
+  }
+
+  document.getElementById("prio-btn-back").addEventListener("click", function () {
+    prioState.depto = "";
+    renderPrio();
+  });
+
   // ---------- orchestration ----------
   function renderAll() {
     var rows = getFilteredRows();
@@ -2029,6 +2154,7 @@
     renderRanking();
     renderCards();
     renderMap();
+    renderPrio();
 
     var viewHeader = document.getElementById("view-header");
     var viewTitle = document.getElementById("view-title");

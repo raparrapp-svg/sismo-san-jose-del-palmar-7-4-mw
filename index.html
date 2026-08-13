@@ -245,6 +245,7 @@
   .prio-text { font-size: 13px; color: var(--text-secondary); line-height: 1.6; margin: 0 0 10px; max-width: 900px; }
   .prio-text b { color: var(--text-primary); }
   .prio-subtitle { font-size: 14.5px; margin: 14px 0 2px; font-weight: 700; }
+  .name-sub { font-weight: 400; color: var(--text-muted); font-size: 11.5px; }
   .oferta-tag {
     display: inline-flex; align-items: center; gap: 5px;
     font-size: 10.5px; font-weight: 700; padding: 2px 8px; border-radius: 999px;
@@ -359,11 +360,16 @@
   <h2>Priorización de subsidios de arrendamiento</h2>
   <p class="prio-text">Como propuesta para priorizar la entrega del subsidio de arrendamiento temporal, se tuvieron en cuenta tres criterios: primero, la magnitud del daño a la vivienda, dándole más peso a las viviendas destruidas y a los edificios colapsados por ser los que obligan a una reubicación inmediata; segundo, la gravedad humana reportada (fallecidos y heridos), que sirve de respaldo en los municipios donde todavía no se ha completado el censo de familias y personas; y tercero, el tipo de mercado de vivienda del municipio, separando los que tienen oferta de arriendo cercana (donde el subsidio de arrendamiento es viable) de los rurales dispersos (donde lo realista es un albergue temporal, no un arriendo).</p>
   <p class="prio-text">El índice se construyó combinando, por municipio y por departamento, tres componentes llevados a una escala de 0 a 1 frente al máximo nacional de cada uno: <b>50% viviendas destruidas</b>, <b>25% edificios colapsados</b> y <b>25% fallecidos + heridos</b>. El promedio ponderado de los tres se expresa en una escala de 0 a 100 para facilitar la lectura.</p>
+  <h3 class="prio-subtitle">Ranking nacional de municipios más prioritarios</h3>
+  <div class="panel-sub">Los 404 municipios mezclados y ordenados por índice, sin agrupar por departamento — así se ve si la prioridad real salta de un departamento a otro en vez de agotar uno primero. Clic en un municipio para ver su departamento abajo.</div>
+  <div class="rank-list" id="prio-national-list"></div>
+
+  <h3 class="prio-subtitle">Por departamento</h3>
   <div id="prio-view-header" class="view-header" style="display:none;">
     <button class="back-btn" id="prio-btn-back">← Volver a departamentos</button>
     <h2 id="prio-view-title"></h2>
   </div>
-  <h3 id="prio-rank-title" class="prio-subtitle">Departamentos por índice de priorización</h3>
+  <h4 id="prio-rank-title" class="prio-subtitle" style="font-size:13px;">Departamentos por índice de priorización</h4>
   <div class="panel-sub" id="prio-rank-sub">Índice compuesto 0-100 · clic para ver el detalle municipal</div>
   <div class="rank-list" id="prio-rank-list"></div>
 </div>
@@ -2093,6 +2099,32 @@
 
   var prioState = { depto: "" };
 
+  function renderPrioNacional() {
+    var list = document.getElementById("prio-national-list");
+    var entries = ROWS.filter(function (r) { return !r.esAgregadoDepartamental; }).map(function (r) {
+      return { name: r.municipio, dept: r.departamento, value: indicePriorizacion(r, prioMax), oferta: tieneOferta(r) };
+    });
+    entries.sort(function (a, b) { return b.value - a.value; });
+
+    list.innerHTML = "";
+    var max = entries.length ? entries[0].value || 1 : 1;
+    entries.forEach(function (e) {
+      var row = document.createElement("div");
+      row.className = "rank-row" + (e.value <= 0 ? " is-zero" : "");
+      var tagHtml = '<span class="oferta-tag ' + (e.oferta ? "arriendo" : "albergue") + '">' + (e.oferta ? "Arriendo" : "Albergue") + "</span>";
+      row.innerHTML =
+        '<div class="rank-label"><span class="name">' + escapeHtml(e.name) + ' <span class="name-sub">· ' + escapeHtml(e.dept) + "</span>" + tagHtml + "</span>" +
+        '<span class="val">' + e.value + "</span></div>" +
+        '<div class="rank-track"><div class="rank-fill" style="width:' + Math.max(3, (e.value / max) * 100) + "%;background:" + viridisColor(0.3 + 0.6 * (e.value / max)) + '"></div></div>';
+      row.addEventListener("click", function () {
+        prioState.depto = e.dept;
+        renderPrio();
+        document.getElementById("prio-view-header").scrollIntoView({ block: "center" });
+      });
+      list.appendChild(row);
+    });
+  }
+
   function renderPrio() {
     var title = document.getElementById("prio-rank-title");
     var sub = document.getElementById("prio-rank-sub");
@@ -2167,6 +2199,7 @@
   }
 
   renderAll();
+  renderPrioNacional();
 })();
 </script>
 </body>

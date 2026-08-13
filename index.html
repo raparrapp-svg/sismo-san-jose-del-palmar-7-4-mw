@@ -205,6 +205,14 @@
   .status-badge.st-nd { background: var(--gridline); color: var(--text-muted); }
   .status-badge.st-nd .dot { background: var(--text-muted); }
 
+  .flag-sin-censo {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 10.5px; font-weight: 700; padding: 2px 8px; border-radius: 999px;
+    background: color-mix(in srgb, var(--status-warning) 20%, transparent); color: var(--status-warning);
+    margin-top: 6px;
+  }
+  .flag-sin-censo .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--status-warning); flex: none; }
+
   /* ---- municipio card grid ---- */
   .card-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
   .card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 10px; }
@@ -1447,14 +1455,14 @@
   "use strict";
 
   var METRICS = [
-    { key: "personas", label: "Personas afectadas" },
+    { key: "viviendasAveriadas", label: "Viviendas averiadas" },
+    { key: "viviendasDestruidas", label: "Viviendas destruidas" },
     { key: "familias", label: "Familias afectadas" },
+    { key: "personas", label: "Personas afectadas" },
     { key: "fallecidos", label: "Fallecidos" },
     { key: "heridos", label: "Heridos" },
     { key: "desaparecidos", label: "Desaparecidos" },
     { key: "rescatados", label: "Rescatados" },
-    { key: "viviendasDestruidas", label: "Viviendas destruidas" },
-    { key: "viviendasAveriadas", label: "Viviendas averiadas" },
     { key: "edificiosColapsados", label: "Edificios colapsados" },
     { key: "centrosSalud", label: "Centros de salud afectados" },
     { key: "centrosEducativos", label: "Centros educativos afectados" },
@@ -1462,6 +1470,20 @@
     { key: "vias", label: "Vías afectadas" },
     { key: "acueductos", label: "Acueductos afectados" }
   ];
+
+  // orden de desempate cuando el indicador elegido da lo mismo (o vacío) entre
+  // dos sitios: en vez de caer a orden alfabético, se usa esta cadena de severidad
+  var TIE_BREAK_CHAIN = ["viviendasAveriadas", "viviendasDestruidas", "familias", "personas"];
+
+  function compareByMetricChain(a, b, primaryKey) {
+    var keys = [primaryKey];
+    TIE_BREAK_CHAIN.forEach(function (k) { if (keys.indexOf(k) === -1) keys.push(k); });
+    for (var i = 0; i < keys.length; i++) {
+      var va = a[keys[i]] || 0, vb = b[keys[i]] || 0;
+      if (va !== vb) return vb - va;
+    }
+    return 0;
+  }
 
   var KPI_TILES = [
     { key: "familias", label: "Familias afectadas" },
@@ -1520,7 +1542,7 @@
   var ROWS = DATA.rows;
   var DEPTS = DATA.departamentos;
 
-  var state = { depto: "", municipio: "", metric: "personas", search: "" };
+  var state = { depto: "", municipio: "", metric: "viviendasAveriadas", search: "" };
 
   // ---------- header meta ----------
   document.getElementById("tag-fecha").textContent = "Sismo " + DATA.meta.magnitud + " · " + DATA.meta.fechaSismo + " · epicentro " + DATA.meta.epicentro;
@@ -1704,18 +1726,18 @@
       title.textContent = "Departamentos por afectación";
       sub.textContent = metricLabel + " · todos los departamentos, clic para ver el detalle municipal";
       classifier = classify(ROWS, state.metric);
-      entries = DEPTS.map(function (d) { return { key: d.departamento, name: d.departamento, value: d[state.metric] || 0 }; });
+      entries = DEPTS.map(function (d) { return { key: d.departamento, name: d.departamento, value: d[state.metric] || 0, rec: d }; });
       if (q) entries = entries.filter(function (e) { return strip(e.name).indexOf(q) !== -1; });
     } else {
       title.textContent = "Municipios de " + state.depto;
       sub.textContent = metricLabel + " · todos los municipios listados (excluye el registro consolidado departamental)";
       var pool = ROWS.filter(function (r) { return r.departamento === state.depto && !r.esAgregadoDepartamental; });
       classifier = classify(pool, state.metric);
-      entries = pool.map(function (r) { return { key: r.municipio, name: r.municipio, value: r[state.metric] || 0 }; });
+      entries = pool.map(function (r) { return { key: r.municipio, name: r.municipio, value: r[state.metric] || 0, rec: r }; });
       if (q) entries = entries.filter(function (e) { return strip(e.name).indexOf(q) !== -1; });
     }
 
-    entries.sort(function (a, b) { return b.value - a.value; });
+    entries.sort(function (a, b) { return compareByMetricChain(a.rec, b.rec, state.metric); });
 
     list.innerHTML = "";
     if (!entries.length) {
@@ -1764,7 +1786,7 @@
 
     rows = rows.slice().sort(function (a, b) {
       if (a.esAgregadoDepartamental !== b.esAgregadoDepartamental) return a.esAgregadoDepartamental ? 1 : -1;
-      return (b[state.metric] || 0) - (a[state.metric] || 0);
+      return compareByMetricChain(a, b, state.metric);
     });
 
     rows.forEach(function (r, i) {
@@ -1786,6 +1808,10 @@
         return '<div class="m-row"><span>' + label + '</span><b' + (strong ? ' style="color:var(--status-critical)"' : "") + ">" + display + "</b></div>";
       }
 
+      var sinCenso = !r.esAgregadoDepartamental &&
+        ((r.viviendasAveriadas > 0) || (r.viviendasDestruidas > 0)) &&
+        r.familias === null && r.personas === null;
+
       var body =
         '<div class="m-name">' + escapeHtml(r.municipio) + "</div>" +
         badgeHtml +
@@ -1793,6 +1819,10 @@
         row("Personas", r.personas) +
         row("Fallecidos", r.fallecidos, r.fallecidos > 0) +
         row("Viviendas destruidas", r.viviendasDestruidas);
+
+      if (sinCenso) {
+        body += '<div class="flag-sin-censo"><span class="dot"></span>Sin censo de personas/familias</div>';
+      }
 
       var extras = [];
       if (typeof r.heridos === "number") extras.push("Heridos: " + fmtNum(r.heridos));

@@ -327,6 +327,35 @@
   .footnote b { color: var(--text-primary); }
   .empty-state { padding: 30px; text-align: center; color: var(--text-muted); font-size: 13px; grid-column: 1/-1; }
 
+  /* ---- navegacion por pestanas (paginas) ---- */
+  .tab-nav {
+    display: flex; gap: 6px; margin-bottom: 16px; flex-wrap: wrap;
+    background: var(--card-bg); border: 1px solid var(--border);
+    border-radius: 12px; padding: 6px;
+  }
+  .tab-btn {
+    font: inherit; font-size: 13px; font-weight: 600;
+    background: transparent; color: var(--text-secondary);
+    border: none; border-radius: 8px; padding: 9px 14px; cursor: pointer;
+    flex: 1; min-width: 150px; text-align: center;
+  }
+  .tab-btn:hover { background: var(--gridline); color: var(--text-primary); }
+  .tab-btn.is-active { background: var(--accent); color: #ffffff; }
+
+  /* ---- tabla generica (paneles de datos) ---- */
+  table.data-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  table.data-table th {
+    text-align: left; font-weight: 600; font-size: 11px; text-transform: uppercase;
+    letter-spacing: .02em; color: var(--text-muted);
+    padding: 8px 10px; border-bottom: 2px solid var(--border); white-space: nowrap;
+  }
+  table.data-table td {
+    padding: 8px 10px; border-bottom: 1px solid var(--gridline); white-space: nowrap;
+    color: var(--text-primary);
+  }
+  table.data-table tbody tr:hover { background: var(--gridline); }
+  table.data-table .num-cell { text-align: right; font-variant-numeric: tabular-nums; }
+
   /* ---- mobile ---- */
   @media (max-width: 640px) {
     body { padding: 14px 12px 40px; }
@@ -336,6 +365,10 @@
     .gov-entitybar .logo-minvivienda { height: 36px; }
     header.app-header h1 { font-size: 19px; }
     header.app-header .subtitle { font-size: 12.5px; }
+    .tab-nav { flex-direction: column; }
+    .tab-btn { min-width: 0; }
+    #canones-chart { font-size: 11px; }
+    #canones-chart > div > div { padding-right: 40px; }
     .filter-bar { top: 6px; padding: 10px 12px; }
     .kpi-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
     .kpi-tile { padding: 10px 12px; }
@@ -387,6 +420,14 @@
     <span id="tema-icono" aria-hidden="true"></span><span id="tema-texto"></span>
   </button>
 </header>
+
+<nav class="tab-nav" id="tab-nav">
+  <button class="tab-btn is-active" data-page="afectacion" type="button">Mapa de afectación</button>
+  <button class="tab-btn" data-page="priorizacion" type="button">Priorización de subsidios</button>
+  <button class="tab-btn" data-page="canones" type="button">Cánones de arrendamiento</button>
+</nav>
+
+<div id="page-afectacion" class="tab-page">
 
 <div class="filter-bar">
   <button class="btn filter-toggle" id="btn-toggle-filters" aria-expanded="false" aria-controls="filter-fields">
@@ -448,6 +489,15 @@
   <div class="card-grid" id="card-grid"></div>
 </div>
 
+<div class="footnote">
+  <b>Nota metodológica:</b> <span id="nota-agregados"></span>
+  Estos registros se muestran como tarjeta aparte (borde punteado, en <i>cursiva</i>), no se ubican en el mapa ni entran al ranking de zonas críticas por no corresponder a un municipio puntual — pero sí se incluyen en los totales generales (KPIs) del departamento y del país.
+  Los valores en blanco (—) indican que el indicador no fue reportado para ese sitio, no que su valor sea cero.
+</div>
+
+</div><!-- /page-afectacion -->
+
+<div id="page-priorizacion" class="tab-page" style="display:none;">
 <div class="panel" id="prio-panel">
   <h2>Priorización de subsidios de arrendamiento</h2>
   <p class="prio-text">Como propuesta para priorizar la entrega del subsidio de arrendamiento temporal, se tuvieron en cuenta tres criterios: primero, la magnitud del daño a la vivienda, dándole más peso a las viviendas destruidas y a los edificios colapsados por ser los que obligan a una reubicación inmediata; segundo, la gravedad humana reportada (fallecidos y heridos), que sirve de respaldo en los municipios donde todavía no se ha completado el censo de familias y personas; y tercero, el tipo de mercado de vivienda del municipio, separando los que tienen oferta de arriendo cercana (donde el subsidio de arrendamiento es viable) de los rurales dispersos (donde lo realista es un albergue temporal, no un arriendo).</p>
@@ -465,12 +515,34 @@
   <div class="panel-sub" id="prio-rank-sub">Índice compuesto 0-100 · clic para ver el detalle municipal</div>
   <div class="rank-list" id="prio-rank-list"></div>
 </div>
+</div><!-- /page-priorizacion -->
 
-<div class="footnote">
-  <b>Nota metodológica:</b> <span id="nota-agregados"></span>
-  Estos registros se muestran como tarjeta aparte (borde punteado, en <i>cursiva</i>), no se ubican en el mapa ni entran al ranking de zonas críticas por no corresponder a un municipio puntual — pero sí se incluyen en los totales generales (KPIs) del departamento y del país.
-  Los valores en blanco (—) indican que el indicador no fue reportado para ese sitio, no que su valor sea cero.
+<div id="page-canones" class="tab-page" style="display:none;">
+<div class="panel" id="canones-panel">
+  <h2>Cánones de arrendamiento de referencia</h2>
+  <p class="prio-text">Estimación del canon de arriendo típico por departamento, separado entre zona urbana (cabecera) y rural (resto), a partir de la Gran Encuesta Integrada de Hogares (GEIH) del DANE — <span id="canones-meses"></span>. En zona urbana se usa el arriendo efectivamente pagado por los hogares que arriendan; en zona rural, donde casi no hay mercado formal de arriendo, se usa el arriendo <i>imputado</i> (lo que el propietario estima que pagaría si tuviera que arrendar).</p>
+  <p class="prio-text" id="canones-canon-text"></p>
+  <p class="prio-text" style="font-size:11.5px; color:var(--text-muted);">La GEIH es representativa por departamento y por cabecera/resto, no por municipio individual — cada municipio hereda la estimación de su departamento según sea urbano (con oferta de mercado) o rural disperso, la misma clasificación usada en la pestaña de priorización.</p>
+
+  <h3 class="prio-subtitle">Rango de arriendo por departamento y zona</h3>
+  <div class="panel-sub">Percentil 25 – mediana – percentil 75, en pesos. La línea vertical marca el canon propuesto.</div>
+  <div id="canones-chart" style="margin-top:10px;"></div>
+
+  <h3 class="prio-subtitle">Detalle por departamento y zona</h3>
+  <div class="table-scroll" style="overflow-x:auto;">
+    <table class="data-table" id="canones-tabla">
+      <thead>
+        <tr>
+          <th>Departamento</th><th>Zona</th><th>Hogares (n)</th>
+          <th>P25</th><th>Mediana</th><th>P75</th>
+          <th>Canon propuesto</th><th>Alcance del canon</th>
+        </tr>
+      </thead>
+      <tbody id="canones-tbody"></tbody>
+    </table>
+  </div>
 </div>
+</div><!-- /page-canones -->
 
 <script>const COLOMBIA_GEOJSON = {
 "type":"FeatureCollection",
@@ -1590,6 +1662,8 @@
 {"departamento":"Valle del Cauca","deptCode":"CO-VAC","deptoNormalizado":"VALLE DEL CAUCA","municipiosListados":42,"municipiosSinDesglose":42,"vias":124,"centrosComunitarios":264,"viviendasAveriadas":32987,"viviendasDestruidas":8090,"centrosEducativos":773,"familias":15285,"edificiosColapsados":45,"desaparecidos":117,"centrosSalud":90,"acueductos":17,"fallecidos":148,"heridos":2564,"rescatados":88,"banco":14,"personas":38988,"animalesRescatados":80,"puenteVehicular":6,"aeropuerto":2}
 ]};
 </script>
+<script>const CANONES_DATA = {"meta":{"fuente":"DANE - GEIH, módulo de vivienda","meses":["2026-01","2026-02","2026-03","2026-04","2026-05"],"smmlv":1750905,"factor_canon":0.4,"canon_propuesto":700362,"techo_legal":1085561,"tope_subsidio":700362,"nota":"Estimación por departamento y zona. La GEIH es representativa a nivel departamental y por cabecera/resto, no por municipio individual."},"resultados":[{"dpto":"05","departamento":"Antioquia","zona":"urbano","base":"pagado","n":3426,"n_pagado":3426,"n_imputado":3139,"p25":550000.0,"mediana":800000.0,"p75":1200000.0,"cobertura_tope":0.88,"alcance":"no cubre la mediana"},{"dpto":"05","departamento":"Antioquia","zona":"rural","base":"imputado","n":710,"n_pagado":169,"n_imputado":710,"p25":200000.0,"mediana":300000.0,"p75":500000.0,"cobertura_tope":2.33,"alcance":"cubre todo el rango típico"},{"dpto":"13","departamento":"Bolívar","zona":"urbano","base":"pagado","n":1421,"n_pagado":1421,"n_imputado":2626,"p25":400000.0,"mediana":550000.0,"p75":750000.0,"cobertura_tope":1.27,"alcance":"cubre la mediana, no el 25% más caro"},{"dpto":"13","departamento":"Bolívar","zona":"rural","base":"imputado","n":565,"n_pagado":59,"n_imputado":565,"p25":100000.0,"mediana":150000.0,"p75":250000.0,"cobertura_tope":4.67,"alcance":"cubre todo el rango típico"},{"dpto":"17","departamento":"Caldas","zona":"urbano","base":"pagado","n":2792,"n_pagado":2792,"n_imputado":2871,"p25":490000.0,"mediana":650000.0,"p75":900000.0,"cobertura_tope":1.08,"alcance":"cubre la mediana, no el 25% más caro"},{"dpto":"17","departamento":"Caldas","zona":"rural","base":"imputado","n":692,"n_pagado":131,"n_imputado":692,"p25":200000.0,"mediana":300000.0,"p75":400000.0,"cobertura_tope":2.33,"alcance":"cubre todo el rango típico"},{"dpto":"19","departamento":"Cauca","zona":"urbano","base":"pagado","n":1659,"n_pagado":1659,"n_imputado":2119,"p25":400000.0,"mediana":500000.0,"p75":650000.0,"cobertura_tope":1.4,"alcance":"cubre todo el rango típico"},{"dpto":"19","departamento":"Cauca","zona":"rural","base":"imputado","n":626,"n_pagado":50,"n_imputado":626,"p25":150000.0,"mediana":250000.0,"p75":300000.0,"cobertura_tope":2.8,"alcance":"cubre todo el rango típico"},{"dpto":"27","departamento":"Chocó","zona":"urbano","base":"pagado","n":1268,"n_pagado":1268,"n_imputado":2561,"p25":300000.0,"mediana":400000.0,"p75":550000.0,"cobertura_tope":1.75,"alcance":"cubre todo el rango típico"},{"dpto":"27","departamento":"Chocó","zona":"rural","base":"imputado","n":564,"n_pagado":42,"n_imputado":564,"p25":50000.0,"mediana":140000.0,"p75":250000.0,"cobertura_tope":5.0,"alcance":"cubre todo el rango típico"},{"dpto":"25","departamento":"Cundinamarca","zona":"urbano","base":"pagado","n":769,"n_pagado":769,"n_imputado":943,"p25":550000.0,"mediana":700000.0,"p75":820000.0,"cobertura_tope":1.0,"alcance":"cubre la mediana, no el 25% más caro"},{"dpto":"25","departamento":"Cundinamarca","zona":"rural","base":"imputado","n":615,"n_pagado":177,"n_imputado":615,"p25":300000.0,"mediana":400000.0,"p75":600000.0,"cobertura_tope":1.75,"alcance":"cubre todo el rango típico"},{"dpto":"41","departamento":"Huila","zona":"urbano","base":"pagado","n":1779,"n_pagado":1779,"n_imputado":2143,"p25":380000.0,"mediana":450000.0,"p75":600000.0,"cobertura_tope":1.56,"alcance":"cubre todo el rango típico"},{"dpto":"41","departamento":"Huila","zona":"rural","base":"imputado","n":516,"n_pagado":98,"n_imputado":516,"p25":200000.0,"mediana":300000.0,"p75":350000.0,"cobertura_tope":2.33,"alcance":"cubre todo el rango típico"},{"dpto":"54","departamento":"Norte de Santander","zona":"urbano","base":"pagado","n":1573,"n_pagado":1573,"n_imputado":2292,"p25":350000.0,"mediana":500000.0,"p75":650000.0,"cobertura_tope":1.4,"alcance":"cubre todo el rango típico"},{"dpto":"54","departamento":"Norte de Santander","zona":"rural","base":"imputado","n":452,"n_pagado":87,"n_imputado":452,"p25":150000.0,"mediana":250000.0,"p75":300000.0,"cobertura_tope":2.8,"alcance":"cubre todo el rango típico"},{"dpto":"86","departamento":"Putumayo","zona":"urbano","base":"pagado","n":401,"n_pagado":401,"n_imputado":311,"p25":350000.0,"mediana":400000.0,"p75":500000.0,"cobertura_tope":1.75,"alcance":"cubre todo el rango típico"},{"dpto":"63","departamento":"Quindío","zona":"urbano","base":"pagado","n":2256,"n_pagado":2256,"n_imputado":2224,"p25":500000.0,"mediana":650000.0,"p75":800000.0,"cobertura_tope":1.08,"alcance":"cubre la mediana, no el 25% más caro"},{"dpto":"63","departamento":"Quindío","zona":"rural","base":"imputado","n":475,"n_pagado":111,"n_imputado":475,"p25":300000.0,"mediana":500000.0,"p75":800000.0,"cobertura_tope":1.4,"alcance":"cubre la mediana, no el 25% más caro"},{"dpto":"66","departamento":"Risaralda","zona":"urbano","base":"pagado","n":3018,"n_pagado":3018,"n_imputado":2361,"p25":500000.0,"mediana":650000.0,"p75":860000.0,"cobertura_tope":1.08,"alcance":"cubre la mediana, no el 25% más caro"},{"dpto":"66","departamento":"Risaralda","zona":"rural","base":"imputado","n":528,"n_pagado":140,"n_imputado":528,"p25":200000.0,"mediana":300000.0,"p75":500000.0,"cobertura_tope":2.33,"alcance":"cubre todo el rango típico"},{"dpto":"70","departamento":"Sucre","zona":"urbano","base":"pagado","n":1064,"n_pagado":1064,"n_imputado":2611,"p25":300000.0,"mediana":400000.0,"p75":550000.0,"cobertura_tope":1.75,"alcance":"cubre todo el rango típico"},{"dpto":"70","departamento":"Sucre","zona":"rural","base":"imputado","n":578,"n_pagado":29,"n_imputado":578,"p25":100000.0,"mediana":180000.0,"p75":250000.0,"cobertura_tope":3.89,"alcance":"cubre todo el rango típico"},{"dpto":"73","departamento":"Tolima","zona":"urbano","base":"pagado","n":1580,"n_pagado":1580,"n_imputado":1683,"p25":450000.0,"mediana":550000.0,"p75":700000.0,"cobertura_tope":1.27,"alcance":"cubre todo el rango típico"},{"dpto":"73","departamento":"Tolima","zona":"rural","base":"imputado","n":706,"n_pagado":93,"n_imputado":706,"p25":200000.0,"mediana":300000.0,"p75":400000.0,"cobertura_tope":2.33,"alcance":"cubre todo el rango típico"},{"dpto":"76","departamento":"Valle del Cauca","zona":"urbano","base":"pagado","n":2783,"n_pagado":2783,"n_imputado":2875,"p25":450000.0,"mediana":600000.0,"p75":800000.0,"cobertura_tope":1.17,"alcance":"cubre la mediana, no el 25% más caro"},{"dpto":"76","departamento":"Valle del Cauca","zona":"rural","base":"imputado","n":532,"n_pagado":205,"n_imputado":532,"p25":200000.0,"mediana":300000.0,"p75":450000.0,"cobertura_tope":2.33,"alcance":"cubre todo el rango típico"}]};
+</script>
 <script>
 (function () {
   "use strict";
@@ -2350,6 +2424,122 @@
       viewHeader.style.display = "none";
     }
   }
+
+  // ---------- pagina de canones de arrendamiento ----------
+  var MESES_NOMBRE = {
+    "01": "enero", "02": "febrero", "03": "marzo", "04": "abril", "05": "mayo",
+    "06": "junio", "07": "julio", "08": "agosto", "09": "septiembre",
+    "10": "octubre", "11": "noviembre", "12": "diciembre"
+  };
+
+  function renderCanones() {
+    if (typeof CANONES_DATA === "undefined") return;
+    var meta = CANONES_DATA.meta;
+    var filas = CANONES_DATA.resultados;
+
+    var mesesTxt = meta.meses.map(function (m) {
+      var p = m.split("-");
+      return MESES_NOMBRE[p[1]] + " " + p[0];
+    }).join(", ");
+    document.getElementById("canones-meses").textContent = mesesTxt + " (" + filas.reduce(function (a, r) { return a + r.n; }, 0) + " hogares encuestados en los 14 departamentos)";
+
+    document.getElementById("canones-canon-text").innerHTML =
+      "<b>Canon propuesto: " + fmtNum(meta.canon_propuesto) + " pesos mensuales</b> (" + meta.factor_canon.toFixed(2) + " SMMLV de " + fmtNum(meta.smmlv) + ")." +
+      " El techo legal del subsidio de arrendamiento temporal es de 0,62 SMMLV, es decir " + fmtNum(meta.techo_legal) + " pesos — el canon propuesto es menor a ese techo.";
+
+    // ---- grafico de rangos ----
+    var MAXV = 0;
+    filas.forEach(function (r) { if (r.p75 > MAXV) MAXV = r.p75; });
+    MAXV = Math.max(MAXV, meta.techo_legal) * 1.05;
+
+    var porDepto = {};
+    filas.forEach(function (r) {
+      if (!porDepto[r.departamento]) porDepto[r.departamento] = {};
+      porDepto[r.departamento][r.zona] = r;
+    });
+
+    function pct(v) { return (v / MAXV) * 100; }
+    function colorPara(r) {
+      if (meta.canon_propuesto < r.mediana) return "var(--status-critical)";
+      if (meta.canon_propuesto < r.p75) return "var(--status-warning)";
+      return "var(--status-good)";
+    }
+
+    var chartHtml = "";
+    Object.keys(porDepto).sort().forEach(function (dep) {
+      chartHtml += '<div style="margin-bottom:13px;"><div style="color:var(--text-primary); font-size:12.5px; margin-bottom:4px;">' + escapeHtml(dep) + "</div>";
+      chartHtml += '<div style="position:relative;">';
+      ["urbano", "rural"].forEach(function (zona) {
+        var r = porDepto[dep][zona];
+        if (!r) return;
+        var col = colorPara(r);
+        var left = pct(r.p25), width = pct(r.p75) - pct(r.p25), medLeft = pct(r.mediana);
+        chartHtml +=
+          '<div style="position:relative; height:20px; margin-bottom:3px; padding-left:56px;">' +
+          '<span style="position:absolute; left:0; top:3px; color:var(--text-muted); font-size:11px; text-transform:capitalize;">' + zona + "</span>" +
+          '<span style="position:absolute; left:56px; right:0; top:9px; height:1px; background:var(--border);"></span>' +
+          '<span style="position:absolute; left:calc(56px + ' + left + '% * 0.85); width:' + (width * 0.85) + '%; top:6px; height:8px; background:' + col + '; opacity:.30; border-radius:4px;"></span>' +
+          '<span style="position:absolute; left:calc(56px + ' + medLeft + '% * 0.85 - 4px); top:5px; width:9px; height:9px; border-radius:50%; background:' + col + ';"></span>' +
+          '<span style="position:absolute; left:calc(56px + ' + pct(r.p75) + '% * 0.85 + 8px); top:2px; color:var(--text-secondary); font-size:11px; white-space:nowrap;">' + fmtNum(r.mediana) + "</span>" +
+          "</div>";
+      });
+      chartHtml += '<span style="position:absolute; left:calc(56px + ' + pct(meta.canon_propuesto) + '% * 0.85); top:0; bottom:0; width:2px; background:var(--status-critical);"></span>';
+      chartHtml += '<span style="position:absolute; left:calc(56px + ' + pct(meta.techo_legal) + '% * 0.85); top:0; bottom:0; border-left:2px dashed var(--text-muted); opacity:.5;"></span>';
+      chartHtml += "</div></div>";
+    });
+    chartHtml =
+      '<div style="display:flex; gap:14px; flex-wrap:wrap; font-size:11px; color:var(--text-secondary); margin-bottom:10px;">' +
+      '<span style="display:flex; align-items:center; gap:5px;"><span style="width:10px;height:10px;border-radius:2px;background:var(--status-critical);"></span>No cubre la mediana</span>' +
+      '<span style="display:flex; align-items:center; gap:5px;"><span style="width:10px;height:10px;border-radius:2px;background:var(--status-warning);"></span>Cubre mediana, no lo más caro</span>' +
+      '<span style="display:flex; align-items:center; gap:5px;"><span style="width:10px;height:10px;border-radius:2px;background:var(--status-good);"></span>Cubre todo el rango</span>' +
+      '<span style="display:flex; align-items:center; gap:5px;"><span style="width:2px;height:11px;background:var(--status-critical);"></span>Canon propuesto</span>' +
+      '<span style="display:flex; align-items:center; gap:5px;"><span style="width:11px;border-top:2px dashed var(--text-muted);"></span>Techo legal</span>' +
+      "</div>" + chartHtml;
+    document.getElementById("canones-chart").innerHTML = chartHtml;
+
+    // ---- tabla ----
+    var tbody = document.getElementById("canones-tbody");
+    tbody.innerHTML = "";
+    filas.forEach(function (r) {
+      var st = r.alcance === "no cubre la mediana" ? { cls: "critico", label: "No alcanza" }
+        : r.alcance === "cubre la mediana, no el 25% más caro" ? { cls: "medio", label: "Parcial" }
+        : { cls: "bajo", label: "Suficiente" };
+      var tr = document.createElement("tr");
+      tr.innerHTML =
+        "<td>" + escapeHtml(r.departamento) + "</td>" +
+        '<td style="text-transform:capitalize;">' + r.zona + "</td>" +
+        '<td class="num-cell">' + fmtNum(r.n) + "</td>" +
+        '<td class="num-cell">$' + fmtNum(r.p25) + "</td>" +
+        '<td class="num-cell"><b>$' + fmtNum(r.mediana) + "</b></td>" +
+        '<td class="num-cell">$' + fmtNum(r.p75) + "</td>" +
+        '<td class="num-cell">$' + fmtNum(meta.canon_propuesto) + " (" + r.cobertura_tope.toFixed(2) + "x)</td>" +
+        '<td><span class="status-badge st-' + st.cls + '"><span class="dot"></span>' + st.label + "</span></td>";
+      tbody.appendChild(tr);
+    });
+  }
+
+  // ---------- navegacion por pestanas ----------
+  (function () {
+    var botones = Array.prototype.slice.call(document.querySelectorAll(".tab-btn"));
+    var paginas = { afectacion: "page-afectacion", priorizacion: "page-priorizacion", canones: "page-canones" };
+    var yaRenderoCanones = false;
+
+    function irA(pagina) {
+      botones.forEach(function (b) { b.classList.toggle("is-active", b.dataset.page === pagina); });
+      Object.keys(paginas).forEach(function (p) {
+        document.getElementById(paginas[p]).style.display = p === pagina ? "" : "none";
+      });
+      if (pagina === "canones" && !yaRenderoCanones) {
+        renderCanones();
+        yaRenderoCanones = true;
+      }
+      window.scrollTo(0, 0);
+    }
+
+    botones.forEach(function (b) {
+      b.addEventListener("click", function () { irA(b.dataset.page); });
+    });
+  })();
 
   renderAll();
   renderPrioNacional();

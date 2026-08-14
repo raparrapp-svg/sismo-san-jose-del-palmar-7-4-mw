@@ -380,6 +380,7 @@
   }
   table.data-table tbody tr:hover { background: var(--gridline); }
   table.data-table .num-cell { text-align: right; font-variant-numeric: tabular-nums; }
+  table.data-table th.num-cell { text-align: right; }
   table.data-table .wrap { white-space: normal; min-width: 220px; }
 
   /* ---- slider doble de rango de precio ---- */
@@ -461,7 +462,6 @@
 <nav class="tab-nav" id="tab-nav">
   <button class="tab-btn is-active" data-page="afectacion" type="button">Mapa de afectación</button>
   <button class="tab-btn" data-page="canones" type="button">Cánones de arrendamiento</button>
-  <button class="tab-btn" data-page="comparar" type="button">DANE vs Finca Raíz</button>
   <button class="tab-btn" data-page="cruce" type="button">Prioridad y oferta</button>
 </nav>
 
@@ -543,7 +543,7 @@
   <p class="prio-text" style="font-size:11.5px; color:var(--text-muted);">La GEIH es representativa por departamento y por cabecera/resto, no por municipio individual — cada municipio hereda la estimación de su departamento según sea urbano (con oferta de mercado) o rural disperso, la misma clasificación usada en la pestaña de priorización.</p>
 
   <h3 class="prio-subtitle">Rango de arriendo por departamento y zona</h3>
-  <div class="panel-sub">Percentil 25 – mediana – percentil 75, en pesos. La línea vertical marca el canon propuesto.</div>
+  <div class="panel-sub">Cada barra va del arriendo más económico (25% más barato) al más caro (25% más costoso) que se paga en esa zona; el punto marca el arriendo más típico (mediana). La línea vertical marca el canon propuesto.</div>
   <div id="canones-chart" style="margin-top:10px;"></div>
 
   <h3 class="prio-subtitle">Detalle por departamento y zona</h3>
@@ -551,9 +551,9 @@
     <table class="data-table" id="canones-tabla">
       <thead>
         <tr>
-          <th>Departamento</th><th>Zona</th><th>Hogares (n)</th>
-          <th>P25</th><th>Mediana</th><th>P75</th>
-          <th>Canon propuesto</th><th>Alcance del canon</th>
+          <th>Departamento</th><th>Zona</th><th class="num-cell">Hogares (n)</th>
+          <th class="num-cell">Más económico (25%)</th><th class="num-cell">Mediana</th><th class="num-cell">Más caro (25%)</th>
+          <th class="num-cell">Canon propuesto</th><th>Alcance del canon</th>
         </tr>
       </thead>
       <tbody id="canones-tbody"></tbody>
@@ -562,7 +562,7 @@
 </div>
 </div><!-- /page-canones -->
 
-<div id="page-comparar" class="tab-page" style="display:none;">
+<div id="page-cruce" class="tab-page" style="display:none;">
 <div class="panel" id="fr-panel">
   <h2>Oferta de arriendo — Finca Raíz</h2>
   <p class="prio-text">Avisos de arriendo verificados por código DANE del municipio (apartamento, casa, apartaestudio y habitación — se excluyen fincas, cabañas y otros usos no residenciales). Filtra por departamento, tipo de vivienda y rango de precio para ver dónde hay oferta real y a qué precio.</p>
@@ -610,27 +610,6 @@
   <div class="card-grid" id="fr-card-grid"></div>
 </div>
 
-<div class="panel" id="comparar-panel" style="margin-top:16px;">
-  <h2>Cánones DANE vs. precios reales de Finca Raíz</h2>
-  <p class="prio-text">Compara la estimación oficial de arriendo urbano de la GEIH-DANE contra la mediana de los avisos de arriendo verificados en Finca Raíz, por departamento (sin aplicar los filtros de arriba — es la comparación agregada completa). Finca Raíz solo capta el mercado formal mediado por inmobiliarias — donde no hay avisos publicados, se muestra "—".</p>
-  <div class="table-scroll" style="overflow-x:auto;">
-    <table class="data-table" id="comparar-tabla">
-      <thead>
-        <tr>
-          <th>Departamento</th>
-          <th>Mediana DANE (urbano)</th>
-          <th>Mediana Finca Raíz</th>
-          <th>Diferencia</th>
-          <th>Municipios con oferta</th>
-        </tr>
-      </thead>
-      <tbody id="comparar-tbody"></tbody>
-    </table>
-  </div>
-</div>
-</div><!-- /page-comparar -->
-
-<div id="page-cruce" class="tab-page" style="display:none;">
 <div class="panel" id="cruce-panel">
   <h2>Prioridad de daño vs. oferta de arriendo disponible</h2>
   <p class="prio-text">Cruza el daño reportado (viviendas destruidas + averiadas) de cada municipio afectado con la oferta real de vivienda en arriendo verificada en Finca Raíz. El objetivo: identificar dónde el subsidio de arrendamiento es viable (hay oferta) y dónde no (no importa el monto del subsidio si no hay vivienda disponible para arrendar — ahí la respuesta es albergue temporal).</p>
@@ -641,8 +620,8 @@
     <table class="data-table" id="cruce-tabla">
       <thead>
         <tr>
-          <th>Departamento</th><th>Municipio</th><th>Viv. destruidas</th><th>Viv. averiadas</th>
-          <th>Avisos en arriendo</th><th>Mediana DANE (depto.)</th><th>Mediana Finca Raíz</th><th>Estado</th>
+          <th>Departamento</th><th>Municipio</th><th class="num-cell">Viv. destruidas</th><th class="num-cell">Viv. averiadas</th>
+          <th class="num-cell">Avisos en arriendo</th><th class="num-cell">Mediana DANE (depto.)</th><th class="num-cell">Mediana Finca Raíz</th><th>Estado</th>
         </tr>
       </thead>
       <tbody id="cruce-tbody"></tbody>
@@ -2504,38 +2483,6 @@
     });
   }
 
-  // ---------- pagina: DANE vs Finca Raiz ----------
-  function renderComparaTabla() {
-    if (typeof CANONES_DATA === "undefined" || typeof OFERTA_DATA === "undefined") return;
-    var danePorDepto = {};
-    CANONES_DATA.resultados.forEach(function (r) {
-      if (r.zona === "urbano") danePorDepto[r.departamento] = r.mediana;
-    });
-    var frPorDepto = {};
-    OFERTA_DATA.municipios.forEach(function (m) {
-      if (!m.precio_mediana) return;
-      (frPorDepto[m.departamento] = frPorDepto[m.departamento] || []).push(m.precio_mediana);
-    });
-
-    var deptos = Object.keys(danePorDepto).sort();
-    var tbody = document.getElementById("comparar-tbody");
-    tbody.innerHTML = "";
-    deptos.forEach(function (dep) {
-      var dane = danePorDepto[dep];
-      var lista = frPorDepto[dep] || [];
-      var frMed = lista.length ? Math.round(lista.slice().sort(function (a, b) { return a - b; })[Math.floor(lista.length / 2)]) : null;
-      var dif = frMed ? frMed - dane : null;
-      var tr = document.createElement("tr");
-      tr.innerHTML =
-        "<td>" + escapeHtml(dep) + "</td>" +
-        '<td class="num-cell">$' + fmtNum(dane) + "</td>" +
-        '<td class="num-cell">' + (frMed ? "$" + fmtNum(frMed) : "—") + "</td>" +
-        '<td class="num-cell"' + (dif > 0 ? ' style="color:var(--status-critical)"' : "") + ">" + (dif !== null ? (dif > 0 ? "+" : "") + "$" + fmtNum(dif) : "—") + "</td>" +
-        '<td class="num-cell">' + lista.length + "</td>";
-      tbody.appendChild(tr);
-    });
-  }
-
   // ---------- panel de oferta Finca Raiz (filtros + mapa + tarjetas) ----------
   var frState = { depto: "", tipo: "", precioMin: null, precioMax: null, boundsMin: 0, boundsMax: 0, medianaGlobal: 0 };
   var frMapPaths = {};
@@ -2630,6 +2577,32 @@
       "Mayor" + '<span style="margin-left:10px;">Máx.: <b style="color:var(--text-primary)">' + fmtNum(max) + " avisos</b></span>";
   }
 
+  var frDanioCache = null;
+  function frDanio() {
+    if (!frDanioCache) {
+      frDanioCache = {};
+      ROWS.forEach(function (r) {
+        if (r.esAgregadoDepartamental) return;
+        frDanioCache[r.departamento + "|" + r.municipio] = {
+          destruidas: (typeof r.viviendasDestruidas === "number") ? r.viviendasDestruidas : null,
+          averiadas: (typeof r.viviendasAveriadas === "number") ? r.viviendasAveriadas : null,
+        };
+      });
+    }
+    return frDanioCache;
+  }
+
+  var frDaneDeptoCache = null;
+  function frDaneDepto() {
+    if (!frDaneDeptoCache) {
+      frDaneDeptoCache = {};
+      if (typeof CANONES_DATA !== "undefined") {
+        CANONES_DATA.resultados.forEach(function (r) { if (r.zona === "urbano") frDaneDeptoCache[r.departamento] = r.mediana; });
+      }
+    }
+    return frDaneDeptoCache;
+  }
+
   function frRenderRankYCards(filtrados) {
     var porMun = {};
     filtrados.forEach(function (a) {
@@ -2673,15 +2646,21 @@
     var cardGrid = document.getElementById("fr-card-grid");
     cardGrid.innerHTML = "";
     if (!lista.length) { cardGrid.innerHTML = '<div class="empty-state">Ajusta los filtros — no hay avisos que cumplan.</div>'; return; }
+    var danio = frDanio();
+    var daneDepto = frDaneDepto();
     lista.forEach(function (m) {
+      var d = danio[m.departamento + "|" + m.municipio] || {};
+      var daneMed = daneDepto[m.departamento];
       var card = document.createElement("div");
       card.className = "m-card st-bajo";
       card.innerHTML =
         '<div class="m-name">' + escapeHtml(m.municipio) + '<span class="name-sub"> · ' + escapeHtml(m.departamento) + "</span></div>" +
         '<div class="m-badge st-bajo">' + m.n + "</div>" +
-        '<div class="m-row"><span>Mínimo</span><b>$' + fmtNum(m.min) + "</b></div>" +
-        '<div class="m-row"><span>Mediana</span><b>$' + fmtNum(m.mediana) + "</b></div>" +
-        '<div class="m-row"><span>Máximo</span><b>$' + fmtNum(m.max) + "</b></div>";
+        '<div class="m-row"><span>Mediana Finca Raíz</span><b>$' + fmtNum(m.mediana) + "</b></div>" +
+        '<div class="m-row"><span>Mediana DANE (depto.)</span><b>' + (daneMed ? "$" + fmtNum(daneMed) : "—") + "</b></div>" +
+        '<div class="m-row"><span>Viviendas destruidas</span><b>' + (d.destruidas !== null && d.destruidas !== undefined ? fmtNum(d.destruidas) : "—") + "</b></div>" +
+        '<div class="m-row"><span>Viviendas averiadas</span><b>' + (d.averiadas !== null && d.averiadas !== undefined ? fmtNum(d.averiadas) : "—") + "</b></div>" +
+        '<div class="m-row"><span>Avisos en arriendo</span><b>' + fmtNum(m.n) + "</b></div>";
       cardGrid.appendChild(card);
     });
   }
@@ -2739,13 +2718,9 @@
     frRenderAll();
   }
 
-  function renderComparar() {
-    frInit();
-    renderComparaTabla();
-  }
-
-  // ---------- pagina: prioridad de dano vs oferta ----------
+  // ---------- pagina: oferta Finca Raiz + prioridad de dano vs oferta ----------
   function renderCruce() {
+    frInit();
     if (typeof OFERTA_DATA === "undefined") return;
     var ofertaPorMun = {};
     OFERTA_DATA.municipios.forEach(function (m) { ofertaPorMun[m.departamento + "|" + m.municipio] = m; });
@@ -2837,8 +2812,8 @@
       if (!m) return false;
       if (subState.depto && m.departamento !== subState.depto) return false;
       if (subState.municipio && m.municipio !== subState.municipio) return false;
-      if (subState.periodos.length && subState.periodos.indexOf(f.periodo) === -1) return false;
-      if (subState.anios.length && subState.anios.indexOf(f.anio) === -1) return false;
+      if (subState.periodos.length && subState.periodos.indexOf(String(f.periodo)) === -1) return false;
+      if (subState.anios.length && subState.anios.indexOf(String(f.anio)) === -1) return false;
       if (subState.modalidad && f.modalidad !== subState.modalidad) return false;
       if (subState.programa && (f.programa || "").trim() !== subState.programa) return false;
       if (subState.esquema && f.esquema !== subState.esquema) return false;
@@ -3060,11 +3035,10 @@
     var botones = Array.prototype.slice.call(document.querySelectorAll(".tab-btn"));
     var paginas = {
       afectacion: "page-afectacion", canones: "page-canones",
-      comparar: "page-comparar", cruce: "page-cruce"
+      cruce: "page-cruce"
     };
     var renderizadores = {
       canones: (typeof renderCanones === "function") ? renderCanones : null,
-      comparar: (typeof renderComparar === "function") ? renderComparar : null,
       cruce: (typeof renderCruce === "function") ? renderCruce : null,
     };
     var yaRenderizado = {};

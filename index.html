@@ -584,15 +584,6 @@
 
 <div id="page-reporte1" class="tab-page" style="display:none;">
 
-<div class="filter-bar" style="position:static; margin-bottom:14px;">
-  <div>
-    <div class="meta-tags">
-      <span class="tag" id="r1-banner-reporte"></span>
-      <span class="tag" id="r1-banner-sismo"></span>
-      <span class="tag" id="r1-banner-registros"></span>
-    </div>
-  </div>
-</div>
 <div class="filter-bar">
   <button class="btn filter-toggle" id="r1-btn-toggle-filters" aria-expanded="false" aria-controls="r1-filter-fields">
     <span>Filtros</span><span id="r1-filter-toggle-icon">▾</span>
@@ -2918,9 +2909,15 @@
 
   function renderDeptoMapView() {
     document.getElementById("map-title").textContent = "Mapa por departamento";
-    // encuadre a los departamentos con datos en este reporte (no todo el pais),
-    // para que el mapa se vea mas cercano en vez de mostrar el mapa completo de Colombia
-    var featsAfectados = COLOMBIA_GEOJSON.features.filter(function (f) { return !!findDeptRecord(f.properties.NOMBRE_DPT); });
+    // encuadre a los departamentos con datos en CUALQUIERA de los reportes (no
+    // solo el de este panel), para que el mapa nacional se vea siempre al mismo
+    // zoom/tamano sin importar que pestana de reporte se este viendo
+    var deptosUnionNorm = {};
+    AFECTACIONES_DATA.departamentos.forEach(function (d) { deptosUnionNorm[d.deptoNormalizado] = true; });
+    if (typeof AFECTACIONES_DATA_R1 !== "undefined") {
+      AFECTACIONES_DATA_R1.departamentos.forEach(function (d) { deptosUnionNorm[d.deptoNormalizado] = true; });
+    }
+    var featsAfectados = COLOMBIA_GEOJSON.features.filter(function (f) { return !!deptosUnionNorm[f.properties.NOMBRE_DPT]; });
     var project = buildProjection(featsAfectados.length ? featsAfectados : COLOMBIA_GEOJSON.features, VIEW_W, VIEW_H, 18);
     var max = 0;
     DEPTS.forEach(function (d) { max = Math.max(max, d[state.metric] || 0); });
@@ -3050,10 +3047,6 @@
 
   var state = { depto: "", municipio: "", metric: "viviendasAveriadas", search: "" };
 
-  // ---------- meta del reporte (banner propio del panel historico) ----------
-  document.getElementById("r1-banner-reporte").textContent = "Reporte Situacional No. " + DATA.meta.numeroReporte + " · emitido " + DATA.meta.corte;
-  document.getElementById("r1-banner-sismo").textContent = "Sismo " + DATA.meta.magnitud + " Mw · " + DATA.meta.fechaSismo + " · epicentro " + DATA.meta.epicentro;
-  document.getElementById("r1-banner-registros").textContent = ROWS.length + " registros · " + DEPTS.length + " departamentos";
   document.getElementById("r1-nota-agregados").textContent = DATA.meta.notaAgregados;
 
   // ---------- mobile filter toggle ----------
@@ -3426,7 +3419,16 @@
 
   function renderDeptoMapView() {
     document.getElementById("r1-map-title").textContent = "Mapa por departamento";
-    var project = buildProjection(COLOMBIA_GEOJSON.features, VIEW_W, VIEW_H, 18);
+    // encuadre a los departamentos con datos en CUALQUIERA de los reportes (no
+    // solo el de este panel), para que el mapa nacional se vea siempre al mismo
+    // zoom/tamano sin importar que pestana de reporte se este viendo
+    var deptosUnionNorm = {};
+    AFECTACIONES_DATA.departamentos.forEach(function (d) { deptosUnionNorm[d.deptoNormalizado] = true; });
+    if (typeof AFECTACIONES_DATA_R1 !== "undefined") {
+      AFECTACIONES_DATA_R1.departamentos.forEach(function (d) { deptosUnionNorm[d.deptoNormalizado] = true; });
+    }
+    var featsAfectados = COLOMBIA_GEOJSON.features.filter(function (f) { return !!deptosUnionNorm[f.properties.NOMBRE_DPT]; });
+    var project = buildProjection(featsAfectados.length ? featsAfectados : COLOMBIA_GEOJSON.features, VIEW_W, VIEW_H, 18);
     var max = 0;
     DEPTS.forEach(function (d) { max = Math.max(max, d[state.metric] || 0); });
 

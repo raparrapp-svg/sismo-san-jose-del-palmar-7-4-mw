@@ -98,11 +98,12 @@
   }
   .gov-header img { display: block; width: auto; }
   .gov-topbar {
-    background: var(--gov-blue);
+    background: #3366cc;
     padding: 8px 18px;
     display: flex; align-items: center;
   }
-  .gov-topbar .logo-govco { height: 22px; }
+  .gov-topbar .logo-govco { height: 22px; display: flex; align-items: center; }
+  .gov-topbar .logo-govco svg { height: 22px; width: auto; display: block; }
   .gov-entitybar {
     background: #ffffff;
     padding: 12px 18px;
@@ -146,6 +147,7 @@
   header.app-header .brand-mark .n { font-size: 15px; }
   header.app-header .brand-mark .u { font-size: 7px; letter-spacing: .06em; margin-top: 2px; }
   header.app-header h1 { font-size: 21px; margin: 0 0 3px; font-weight: 800; letter-spacing: -0.01em; }
+  header.app-header .header-fecha { color: var(--status-critical); font-weight: 700; font-size: 13.5px; margin-bottom: 6px; }
   header.app-header .subtitle { color: var(--text-muted); font-size: 12.5px; }
   header.app-header .meta-tags { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
   .tag {
@@ -204,6 +206,7 @@
   .multi-check-row { display: flex; align-items: center; gap: 7px; font-size: 13px; padding: 4px 6px; border-radius: 6px; cursor: pointer; }
   .multi-check-row:hover { background: var(--surface-2, rgba(127,127,127,.12)); }
   .multi-check-row input { margin: 0; }
+  .multi-check.is-disabled summary { opacity: .55; pointer-events: none; }
   @media (max-width: 640px) {
     .filter-fields.open .multi-check summary { width: 100%; }
     .filter-fields.open .multi-check-panel { left: 0; right: 0; min-width: 0; }
@@ -231,15 +234,15 @@
 
   /* ---- KPI tiles ---- */
   .kpi-grid {
-    display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    gap: 10px; margin-bottom: 18px;
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(105px, 1fr));
+    gap: 8px; margin-bottom: 18px;
   }
   .kpi-tile {
     background: var(--card-bg); border: 1px solid var(--border);
-    border-radius: 3px; padding: 12px 14px;
+    border-radius: 3px; padding: 10px 8px; text-align: center;
   }
-  .kpi-tile .label { font-size: 12px; color: var(--text-secondary); margin-bottom: 6px; }
-  .kpi-tile .value { font-size: 26px; font-weight: 700; line-height: 1; }
+  .kpi-tile .label { font-size: 10.5px; color: var(--text-secondary); margin-bottom: 6px; }
+  .kpi-tile .value { font-size: 21px; font-weight: 700; line-height: 1; }
   .kpi-tile.accent-critical .value { color: var(--status-critical); }
 
   /* ---- back button / breadcrumb ---- */
@@ -349,8 +352,7 @@
   .m-badge.st-alto { background: var(--status-serious); }
   .m-badge.st-medio { background: var(--status-warning); color: #241a00; }
   .m-badge.st-bajo { background: var(--status-good); }
-  .m-badge.sz-lg { min-width: 40px; height: 40px; font-size: 14px; }
-  .m-badge.sz-md { min-width: 34px; height: 34px; font-size: 13px; }
+  .m-badge.sz-sm { min-width: 24px; height: 24px; font-size: 10.5px; }
   .m-name { font-weight: 700; font-size: 13.5px; padding-right: 42px; margin-bottom: 8px; line-height: 1.25; }
   .m-row { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-secondary); padding: 2px 0; }
   .m-row b { color: var(--text-primary); font-weight: 600; font-variant-numeric: tabular-nums; }
@@ -470,6 +472,8 @@
 </head>
 <body>
 
+
+
 <div class="ticker-bar">
   <div class="ticker-mask">
     <div class="ticker-track" id="ticker-track"></div>
@@ -480,14 +484,9 @@
   <div class="brand-row">
     <div class="brand-mark"><span class="n">7.4</span><span class="u">MW</span></div>
     <div>
-      <h1>Tablero de Afectaciones — Sismo 7.4 Chocó</h1>
+      <h1 id="header-titulo">Reporte Situacional</h1>
+      <div class="header-fecha" id="header-fecha"></div>
       <div class="subtitle">Recolección de información EDAN por departamento y municipio · para apoyo a la toma de decisiones</div>
-      <div class="meta-tags">
-        <span class="tag" id="tag-fecha"></span>
-        <span class="tag" id="tag-corte"></span>
-        <span class="tag" id="tag-registros"></span>
-        <span class="tag" id="tag-deptos"></span>
-      </div>
     </div>
   </div>
   <button class="theme-toggle" id="btn-tema" type="button" aria-label="Cambiar entre modo claro y oscuro">
@@ -496,9 +495,9 @@
 </header>
 
 <nav class="tab-nav" id="tab-nav">
-  <button class="tab-btn is-active" data-page="afectacion" type="button">Mapa de afectación</button>
-  <button class="tab-btn" data-page="canones" type="button">Cánones de arrendamiento</button>
+  <button class="tab-btn is-active" data-page="afectacion" type="button">Reporte 021 (13/08 11:00)</button>
   <button class="tab-btn" data-page="reporte1" type="button">Reporte 015 (12/08 07:30)</button>
+  <button class="tab-btn" data-page="canones" type="button">Cánones de arrendamiento</button>
   <button class="tab-btn" data-page="cruce" type="button">Prioridad y oferta</button>
 </nav>
 
@@ -510,12 +509,18 @@
   </button>
   <div class="filter-fields" id="filter-fields">
     <div class="filter-field">
-      <label for="f-depto">Departamento</label>
-      <select id="f-depto"></select>
+      <label>Departamento</label>
+      <details class="multi-check" id="f-depto-dd">
+        <summary id="f-depto-summary">Todos los departamentos</summary>
+        <div class="multi-check-panel" id="f-depto-opts"></div>
+      </details>
     </div>
-    <div class="filter-field">
-      <label for="f-municipio">Municipio</label>
-      <select id="f-municipio"></select>
+    <div class="filter-field" id="f-municipio-field">
+      <label>Municipio</label>
+      <details class="multi-check" id="f-municipio-dd">
+        <summary id="f-municipio-summary">Selecciona un departamento</summary>
+        <div class="multi-check-panel" id="f-municipio-opts"></div>
+      </details>
     </div>
     <div class="filter-field">
       <label for="f-metric">Indicador (mapa / ranking)</label>
@@ -574,7 +579,6 @@
 
 <div id="page-reporte1" class="tab-page" style="display:none;">
 
-<p class="prio-text">Vista de referencia del reporte anterior, para comparar con el estado actual en la pestaña "Mapa de afectación". Los datos no cambian: es una fotografía de ese momento.</p>
 <div class="filter-bar" style="position:static; margin-bottom:14px;">
   <div>
     <div class="meta-tags">
@@ -590,12 +594,18 @@
   </button>
   <div class="filter-fields" id="r1-filter-fields">
     <div class="filter-field">
-      <label for="r1-f-depto">Departamento</label>
-      <select id="r1-f-depto"></select>
+      <label>Departamento</label>
+      <details class="multi-check" id="r1-f-depto-dd">
+        <summary id="r1-f-depto-summary">Todos los departamentos</summary>
+        <div class="multi-check-panel" id="r1-f-depto-opts"></div>
+      </details>
     </div>
-    <div class="filter-field">
-      <label for="r1-f-municipio">Municipio</label>
-      <select id="r1-f-municipio"></select>
+    <div class="filter-field" id="r1-f-municipio-field">
+      <label>Municipio</label>
+      <details class="multi-check" id="r1-f-municipio-dd">
+        <summary id="r1-f-municipio-summary">Selecciona un departamento</summary>
+        <div class="multi-check-panel" id="r1-f-municipio-opts"></div>
+      </details>
     </div>
     <div class="filter-field">
       <label for="r1-f-metric">Indicador (mapa / ranking)</label>
@@ -682,17 +692,23 @@
 
 <div id="page-cruce" class="tab-page" style="display:none;">
 <div class="panel" id="fr-panel">
-  <h2>Oferta de arriendo — Finca Raíz</h2>
+  <h2>Oferta de arriendo — datos web</h2>
   <p class="prio-text">Avisos de arriendo verificados por código DANE del municipio (apartamento, casa, apartaestudio y habitación — se excluyen fincas, cabañas y otros usos no residenciales). Filtra por departamento, tipo de vivienda y rango de precio para ver dónde hay oferta real y a qué precio.</p>
 
   <div class="filter-bar" style="position:static;">
     <div class="filter-field">
-      <label for="fr-depto">Departamento</label>
-      <select id="fr-depto"></select>
+      <label>Departamento</label>
+      <details class="multi-check" id="fr-depto-dd">
+        <summary id="fr-depto-summary">Todos los departamentos</summary>
+        <div class="multi-check-panel" id="fr-depto-opts"></div>
+      </details>
     </div>
     <div class="filter-field">
-      <label for="fr-tipo">Tipo de vivienda</label>
-      <select id="fr-tipo"></select>
+      <label>Tipo de vivienda</label>
+      <details class="multi-check" id="fr-tipo-dd">
+        <summary id="fr-tipo-summary">Todos los tipos</summary>
+        <div class="multi-check-panel" id="fr-tipo-opts"></div>
+      </details>
     </div>
     <div class="filter-field grow">
       <label>Rango de precio mensual <span id="fr-rango-txt" class="name-sub"></span></label>
@@ -711,7 +727,7 @@
   <div class="main-grid">
     <div class="panel map-wrap">
       <h2>Mapa por departamento</h2>
-      <div class="panel-sub" id="fr-map-sub">Color según cantidad de avisos que cumplen el filtro. Clic para filtrar por ese departamento.</div>
+      <div class="panel-sub" id="fr-map-sub">Color según viviendas destruidas + averiadas por departamento. Clic para filtrar por ese departamento.</div>
       <div class="map-frame"><svg id="fr-map-svg" viewBox="0 0 760 800" preserveAspectRatio="xMidYMid meet"></svg></div>
       <div class="map-legend" id="fr-map-legend"></div>
       <div class="map-tooltip" id="fr-map-tooltip"></div>
@@ -735,7 +751,7 @@
 
 <div class="panel" id="cruce-panel">
   <h2>Prioridad de daño vs. oferta de arriendo disponible</h2>
-  <p class="prio-text">Cruza el daño reportado (viviendas destruidas + averiadas) de cada municipio afectado con la oferta real de vivienda en arriendo verificada en Finca Raíz. El objetivo: identificar dónde el subsidio de arrendamiento es viable (hay oferta) y dónde no (no importa el monto del subsidio si no hay vivienda disponible para arrendar — ahí la respuesta es albergue temporal).</p>
+  <p class="prio-text">Cruza el daño reportado (viviendas destruidas + averiadas) de cada municipio afectado con la oferta real de vivienda en arriendo verificada en portales públicos de arriendo. El objetivo: identificar dónde el subsidio de arrendamiento es viable (hay oferta) y dónde no (no importa el monto del subsidio si no hay vivienda disponible para arrendar — ahí la respuesta es albergue temporal).</p>
   <div class="kpi-grid" id="cruce-kpis" style="margin-bottom:16px;"></div>
   <h3 class="prio-subtitle">Los 40 municipios más dañados por el sismo</h3>
   <div class="panel-sub">Ordenados por viviendas destruidas + averiadas, de mayor a menor daño.</div>
@@ -744,7 +760,7 @@
       <thead>
         <tr>
           <th>Departamento</th><th>Municipio</th><th class="num-cell">Viv. destruidas</th><th class="num-cell">Viv. averiadas</th>
-          <th class="num-cell">Avisos en arriendo</th><th class="num-cell">Mediana DANE (depto.)</th><th class="num-cell">Mediana Finca Raíz</th><th>Estado</th>
+          <th class="num-cell">Avisos en arriendo</th><th class="num-cell">Mediana DANE (depto.)</th><th class="num-cell">Mediana datos web</th><th>Estado</th>
         </tr>
       </thead>
       <tbody id="cruce-tbody"></tbody>
@@ -1417,7 +1433,7 @@
 ]};
 </script>
 <script>const AFECTACIONES_DATA = {
-"meta":{"titulo":"Afectaciones Sismo 7.4 - Chocó","fechaSismo":"2026-08-10","magnitud":7.4,"epicentro":"San José del Palmar, Chocó","corte":"13/08/2026 11:00","fuente":"Afectaciones_13-08-2026_11horas.xlsx","notaAgregados":"Las filas 'Municipios sin desglose individual' agrupan los municipios de ese departamento que fueron reportados en la EDAN departamental consolidada pero sin desagregar por municipio. No se deben sumar con los municipios listados individualmente: son un registro adicional independiente."},
+"meta":{"titulo":"Afectaciones Sismo 7.4 - Chocó","numeroReporte":"021","fechaSismo":"2026-08-10","magnitud":7.4,"epicentro":"San José del Palmar, Chocó","corte":"13/08/2026 11:00","fuente":"Afectaciones_13-08-2026_11horas.xlsx","notaAgregados":"Las filas 'Municipios sin desglose individual' agrupan los municipios de ese departamento que fueron reportados en la EDAN departamental consolidada pero sin desagregar por municipio. No se deben sumar con los municipios listados individualmente: son un registro adicional independiente."},
 "rows":[
 {"deptCode":"CO-ANT","departamento":"Antioquia","municipio":"Municipios sin desglose individual","municipiosAgregados":102,"familias":null,"personas":null,"fallecidos":null,"heridos":null,"desaparecidos":null,"rescatados":null,"viviendasAveriadas":null,"viviendasDestruidas":null,"edificiosColapsados":null,"centrosSalud":null,"centrosEducativos":null,"centrosComunitarios":10,"vias":null,"aeropuerto":null,"acueductos":null,"animalesRescatados":null,"animalesAfectados":null,"puenteVehicular":null,"puentePeatonal":null,"banco":null,"observacion":"10 Infraestructura del ICBF","bitacora":"Enviado por WhatsApp CITEL 13/08/2026 06:25 horas","esAgregadoDepartamental":true,"deptoNormalizado":"ANTIOQUIA"},
 {"deptCode":"CO-ANT","departamento":"Antioquia","municipio":"El Bagre","municipiosAgregados":null,"familias":null,"personas":null,"fallecidos":null,"heridos":null,"desaparecidos":null,"rescatados":null,"viviendasAveriadas":null,"viviendasDestruidas":null,"edificiosColapsados":null,"centrosSalud":null,"centrosEducativos":1,"centrosComunitarios":null,"vias":null,"aeropuerto":null,"acueductos":null,"animalesRescatados":null,"animalesAfectados":null,"puenteVehicular":null,"puentePeatonal":null,"banco":null,"observacion":null,"bitacora":"Edan Antioquia enviado por WhatsApp CITEL 12/08/2026  18:45 horas","esAgregadoDepartamental":false,"deptoNormalizado":"ANTIOQUIA"},
@@ -2447,6 +2463,26 @@
     return "rgb(" + r + "," + g + "," + bl + ")";
   }
 
+  function buildDeptoCheckSingle(opts, panelId, summaryId, todosLabel, getSelected, onSelect) {
+    var panel = document.getElementById(panelId);
+    var summary = document.getElementById(summaryId);
+    panel.innerHTML = "";
+    opts.forEach(function (op) {
+      var row = document.createElement("label");
+      row.className = "multi-check-row";
+      var input = document.createElement("input");
+      input.type = "checkbox";
+      input.value = op;
+      input.checked = getSelected() === op;
+      var span = document.createElement("span");
+      span.textContent = op;
+      row.appendChild(input); row.appendChild(span);
+      panel.appendChild(row);
+      input.addEventListener("change", function () { onSelect(input.checked ? op : ""); });
+    });
+    summary.textContent = getSelected() || todosLabel;
+  }
+
   var DATA = AFECTACIONES_DATA;
   var ROWS = DATA.rows;
   var DEPTS = DATA.departamentos;
@@ -2454,11 +2490,9 @@
   var state = { depto: "", municipio: "", metric: "viviendasAveriadas", search: "" };
 
   // ---------- header meta ----------
-  document.getElementById("tag-fecha").textContent = "Sismo " + DATA.meta.magnitud + " Mw · " + DATA.meta.fechaSismo + " · epicentro " + DATA.meta.epicentro;
-  var tagCorte = document.getElementById("tag-corte");
-  if (DATA.meta.corte) tagCorte.textContent = "Datos con corte " + DATA.meta.corte; else tagCorte.style.display = "none";
-  document.getElementById("tag-registros").textContent = ROWS.length + " registros";
-  document.getElementById("tag-deptos").textContent = DEPTS.length + " departamentos";
+  document.getElementById("header-titulo").textContent = "Reporte Situacional No. " + DATA.meta.numeroReporte + " — Sismo " + DATA.meta.magnitud + " Mw";
+  var fechaSismoDDMMYYYY = DATA.meta.fechaSismo.split("-").reverse().join("/");
+  document.getElementById("header-fecha").textContent = fechaSismoDDMMYYYY + " · " + DATA.meta.epicentro;
   document.getElementById("nota-agregados").textContent = DATA.meta.notaAgregados;
 
   // ---------- cinta de datos (arriba de todo, se pausa al pasar el mouse) ----------
@@ -2489,8 +2523,6 @@
   });
 
   // ---------- filter controls ----------
-  var selDepto = document.getElementById("f-depto");
-  var selMunicipio = document.getElementById("f-municipio");
   var selMetric = document.getElementById("f-metric");
   var inputSearch = document.getElementById("f-search");
 
@@ -2507,7 +2539,11 @@
   }
 
   var deptoNames = DEPTS.map(function (d) { return d.departamento; }).sort(function (a, b) { return a.localeCompare(b, "es"); });
-  fillSelect(selDepto, deptoNames, "Todos los departamentos");
+  function refrescarDeptoCheckMain() {
+    buildDeptoCheckSingle(deptoNames, "f-depto-opts", "f-depto-summary", "Todos los departamentos",
+      function () { return state.depto; }, function (v) { goToDepto(v); });
+  }
+  refrescarDeptoCheckMain();
 
   METRICS.forEach(function (m) {
     var opt = document.createElement("option");
@@ -2525,23 +2561,22 @@
     } else {
       list = [];
     }
-    fillSelect(selMunicipio, list, state.depto ? "Todos los municipios" : "Selecciona un departamento");
-    selMunicipio.disabled = !state.depto;
-    selMunicipio.value = state.municipio && list.indexOf(state.municipio) !== -1 ? state.municipio : "";
-    state.municipio = selMunicipio.value;
+    state.municipio = state.municipio && list.indexOf(state.municipio) !== -1 ? state.municipio : "";
+    buildDeptoCheckSingle(list, "f-municipio-opts", "f-municipio-summary",
+      state.depto ? "Todos los municipios" : "Selecciona un departamento",
+      function () { return state.municipio; }, function (v) { state.municipio = v; updateMunicipioOptions(); renderAll(); });
+    document.getElementById("f-municipio-dd").classList.toggle("is-disabled", !state.depto);
   }
   updateMunicipioOptions();
 
   function goToDepto(deptoName) {
     state.depto = deptoName || "";
     state.municipio = "";
-    selDepto.value = state.depto;
+    refrescarDeptoCheckMain();
     updateMunicipioOptions();
     renderAll();
   }
 
-  selDepto.addEventListener("change", function () { goToDepto(selDepto.value); });
-  selMunicipio.addEventListener("change", function () { state.municipio = selMunicipio.value; renderAll(); });
   selMetric.addEventListener("change", function () { state.metric = selMetric.value; renderAll(); });
   inputSearch.addEventListener("input", function () { state.search = inputSearch.value.trim(); renderAll(); });
   document.getElementById("btn-reset").addEventListener("click", function () {
@@ -2683,7 +2718,7 @@
         '<div class="rank-track"><div class="rank-fill" style="width:' + Math.max(3, (e.value / max) * 100) + "%;background:" + (e.value > 0 ? viridisColor(0.35 + 0.55 * (e.value / max)) : "var(--gridline)") + '"></div></div>';
       row.addEventListener("click", function () {
         if (!state.depto) { goToDepto(e.key); }
-        else { state.municipio = (state.municipio === e.key) ? "" : e.key; selMunicipio.value = state.municipio; renderAll(); }
+        else { state.municipio = (state.municipio === e.key) ? "" : e.key; updateMunicipioOptions(); renderAll(); }
       });
       list.appendChild(row);
     });
@@ -2726,7 +2761,7 @@
       var badgeHtml = "";
       if (!r.esAgregadoDepartamental) {
         var v = r[state.metric];
-        badgeHtml = '<div class="m-badge st-' + st.cls + '">' + (typeof v === "number" ? (v >= 1000 ? Math.round(v / 100) / 10 + "k" : v) : "—") + "</div>";
+        badgeHtml = '<div class="m-badge st-' + st.cls + '">' + (typeof v === "number" ? fmtNum(v) : "—") + "</div>";
       } else {
         badgeHtml = '<div class="m-badge st-nd">N/A</div>';
       }
@@ -2926,7 +2961,7 @@
       path.addEventListener("mouseleave", hideTooltip);
       if (row) path.addEventListener("click", function () {
         state.municipio = (state.municipio === row.municipio) ? "" : row.municipio;
-        selMunicipio.value = state.municipio;
+        updateMunicipioOptions();
         renderAll();
       });
     });
@@ -2993,8 +3028,6 @@
   });
 
   // ---------- filter controls ----------
-  var selDepto = document.getElementById("r1-f-depto");
-  var selMunicipio = document.getElementById("r1-f-municipio");
   var selMetric = document.getElementById("r1-f-metric");
   var inputSearch = document.getElementById("r1-f-search");
 
@@ -3011,7 +3044,11 @@
   }
 
   var deptoNames = DEPTS.map(function (d) { return d.departamento; }).sort(function (a, b) { return a.localeCompare(b, "es"); });
-  fillSelect(selDepto, deptoNames, "Todos los departamentos");
+  function refrescarDeptoCheckr1_() {
+    buildDeptoCheckSingle(deptoNames, "r1-f-depto-opts", "r1-f-depto-summary", "Todos los departamentos",
+      function () { return state.depto; }, function (v) { goToDepto(v); });
+  }
+  refrescarDeptoCheckr1_();
 
   METRICS.forEach(function (m) {
     var opt = document.createElement("option");
@@ -3029,23 +3066,22 @@
     } else {
       list = [];
     }
-    fillSelect(selMunicipio, list, state.depto ? "Todos los municipios" : "Selecciona un departamento");
-    selMunicipio.disabled = !state.depto;
-    selMunicipio.value = state.municipio && list.indexOf(state.municipio) !== -1 ? state.municipio : "";
-    state.municipio = selMunicipio.value;
+    state.municipio = state.municipio && list.indexOf(state.municipio) !== -1 ? state.municipio : "";
+    buildDeptoCheckSingle(list, "r1-f-municipio-opts", "r1-f-municipio-summary",
+      state.depto ? "Todos los municipios" : "Selecciona un departamento",
+      function () { return state.municipio; }, function (v) { state.municipio = v; updateMunicipioOptions(); renderAll(); });
+    document.getElementById("r1-f-municipio-dd").classList.toggle("is-disabled", !state.depto);
   }
   updateMunicipioOptions();
 
   function goToDepto(deptoName) {
     state.depto = deptoName || "";
     state.municipio = "";
-    selDepto.value = state.depto;
+    refrescarDeptoCheckr1_();
     updateMunicipioOptions();
     renderAll();
   }
 
-  selDepto.addEventListener("change", function () { goToDepto(selDepto.value); });
-  selMunicipio.addEventListener("change", function () { state.municipio = selMunicipio.value; renderAll(); });
   selMetric.addEventListener("change", function () { state.metric = selMetric.value; renderAll(); });
   inputSearch.addEventListener("input", function () { state.search = inputSearch.value.trim(); renderAll(); });
   document.getElementById("r1-btn-reset").addEventListener("click", function () {
@@ -3187,7 +3223,7 @@
         '<div class="rank-track"><div class="rank-fill" style="width:' + Math.max(3, (e.value / max) * 100) + "%;background:" + (e.value > 0 ? viridisColor(0.35 + 0.55 * (e.value / max)) : "var(--gridline)") + '"></div></div>';
       row.addEventListener("click", function () {
         if (!state.depto) { goToDepto(e.key); }
-        else { state.municipio = (state.municipio === e.key) ? "" : e.key; selMunicipio.value = state.municipio; renderAll(); }
+        else { state.municipio = (state.municipio === e.key) ? "" : e.key; updateMunicipioOptions(); renderAll(); }
       });
       list.appendChild(row);
     });
@@ -3230,7 +3266,7 @@
       var badgeHtml = "";
       if (!r.esAgregadoDepartamental) {
         var v = r[state.metric];
-        badgeHtml = '<div class="m-badge st-' + st.cls + '">' + (typeof v === "number" ? (v >= 1000 ? Math.round(v / 100) / 10 + "k" : v) : "—") + "</div>";
+        badgeHtml = '<div class="m-badge st-' + st.cls + '">' + (typeof v === "number" ? fmtNum(v) : "—") + "</div>";
       } else {
         badgeHtml = '<div class="m-badge st-nd">N/A</div>';
       }
@@ -3430,7 +3466,7 @@
       path.addEventListener("mouseleave", hideTooltip);
       if (row) path.addEventListener("click", function () {
         state.municipio = (state.municipio === row.municipio) ? "" : row.municipio;
-        selMunicipio.value = state.municipio;
+        updateMunicipioOptions();
         renderAll();
       });
     });
@@ -3571,9 +3607,35 @@
   }
 
   // ---------- panel de oferta Finca Raiz (filtros + mapa + tarjetas) ----------
-  var frState = { depto: "", tipo: "", precioMin: null, precioMax: null, boundsMin: 0, boundsMax: 0, medianaGlobal: 0 };
+  var frState = { deptos: [], tipos: [], precioMin: null, precioMax: null, boundsMin: 0, boundsMax: 0, medianaGlobal: 0 };
   var frMapPaths = {};
   var frAvisosCache = null;
+  var frDeptosListCache = [];
+
+  function frBuildMultiCheck(opts, panelId, summaryId, stateKey, todosLabel, nombreCorto) {
+    var panel = document.getElementById(panelId);
+    var summary = document.getElementById(summaryId);
+    panel.innerHTML = "";
+    opts.forEach(function (op) {
+      var val = String(op);
+      var id = panelId + "-op-" + val.replace(/[^a-z0-9]/gi, "_");
+      var row = document.createElement("label");
+      row.className = "multi-check-row";
+      var checked = frState[stateKey].indexOf(val) !== -1;
+      row.innerHTML = '<input type="checkbox" value="' + escapeHtml(val) + '" id="' + id + '"' + (checked ? " checked" : "") + '> <span>' + escapeHtml(val) + "</span>";
+      panel.appendChild(row);
+      row.querySelector("input").addEventListener("change", function () {
+        subToggleArr(frState[stateKey], this.value);
+        frActualizarResumenMultiCheck(summary, frState[stateKey], todosLabel, nombreCorto);
+        frRenderAll();
+      });
+    });
+    frActualizarResumenMultiCheck(summary, frState[stateKey], todosLabel, nombreCorto);
+  }
+
+  function frActualizarResumenMultiCheck(summary, arr, todosLabel, nombreCorto) {
+    summary.textContent = arr.length === 0 ? todosLabel : (arr.length === 1 ? arr[0] : arr.length + " " + nombreCorto + " seleccionados");
+  }
 
   function frTodosAvisos() {
     if (frAvisosCache) return frAvisosCache;
@@ -3591,8 +3653,8 @@
 
   function frFiltrar() {
     return frTodosAvisos().filter(function (a) {
-      if (frState.depto && a.departamento !== frState.depto) return false;
-      if (frState.tipo && a.tipo !== frState.tipo) return false;
+      if (frState.deptos.length && frState.deptos.indexOf(a.departamento) === -1) return false;
+      if (frState.tipos.length && frState.tipos.indexOf(a.tipo) === -1) return false;
       if (a.precio < frState.precioMin || a.precio > frState.precioMax) return false;
       return true;
     });
@@ -3636,8 +3698,8 @@
       path.addEventListener("click", function () {
         var rec = findDeptRecord(name);
         if (!rec) return;
-        frState.depto = (frState.depto === rec.departamento) ? "" : rec.departamento;
-        document.getElementById("fr-depto").value = frState.depto;
+        subToggleArr(frState.deptos, rec.departamento);
+        frBuildMultiCheck(frDeptosListCache, "fr-depto-opts", "fr-depto-summary", "deptos", "Todos los departamentos", "departamentos");
         frRenderAll();
       });
     });
@@ -3645,8 +3707,10 @@
   }
 
   function frRenderMap(filtrados) {
-    var porDepto = {};
-    filtrados.forEach(function (a) { porDepto[a.departamento] = (porDepto[a.departamento] || 0) + 1; });
+    // el mapa prioriza por dano (viv. destruidas + averiadas), no por cantidad de
+    // avisos: lo que importa aqui es donde el dano es mayor, para leer la oferta
+    // (tarjetas/ranking) en ese mismo orden de prioridad.
+    var porDepto = frDanioPorDepto();
     var max = 0;
     Object.keys(porDepto).forEach(function (d) { if (porDepto[d] > max) max = porDepto[d]; });
     Object.keys(frMapPaths).forEach(function (name) {
@@ -3655,13 +3719,25 @@
       var path = frMapPaths[name];
       path.style.fill = n > 0 ? viridisColor(Math.sqrt(n / (max || 1))) : "var(--map-empty)";
       path.classList.toggle("is-empty", n <= 0);
-      path.classList.toggle("is-selected", !!(frState.depto && rec && rec.departamento === frState.depto));
+      path.classList.toggle("is-selected", !!(rec && frState.deptos.indexOf(rec.departamento) !== -1));
     });
     var legendMax = document.getElementById("fr-map-legend");
     legendMax.innerHTML = "Menor" +
-      ["--seq-100", "--seq-300", "--seq-450", "--seq-600", "--seq-700"].map(function () { return ""; }).join("") +
       '<div class="legend-gradient" style="background:linear-gradient(to right,#f7ded7,#f0b8ab,#e8927e,#dd5c45,#c22f1e,#a02318,#7a1710)"></div>' +
-      "Mayor" + '<span style="margin-left:10px;">Máx.: <b style="color:var(--text-primary)">' + fmtNum(max) + " avisos</b></span>";
+      "Mayor" + '<span style="margin-left:10px;">Máx. viv. destruidas+averiadas: <b style="color:var(--text-primary)">' + fmtNum(max) + "</b></span>";
+  }
+
+  var frDanioDeptoCache = null;
+  function frDanioPorDepto() {
+    if (!frDanioDeptoCache) {
+      frDanioDeptoCache = {};
+      ROWS.forEach(function (r) {
+        if (r.esAgregadoDepartamental) return;
+        var d = (r.viviendasDestruidas || 0) + (r.viviendasAveriadas || 0);
+        frDanioDeptoCache[r.departamento] = (frDanioDeptoCache[r.departamento] || 0) + d;
+      });
+    }
+    return frDanioDeptoCache;
   }
 
   var frDanioCache = null;
@@ -3697,69 +3773,75 @@
       if (!porMun[k]) porMun[k] = { departamento: a.departamento, municipio: a.municipio, precios: [] };
       porMun[k].precios.push(a.precio);
     });
+    var danio = frDanio();
     var lista = Object.keys(porMun).map(function (k) {
       var m = porMun[k];
       var p = m.precios.slice().sort(function (a, b) { return a - b; });
-      return { departamento: m.departamento, municipio: m.municipio, n: p.length, min: p[0], mediana: p[Math.floor(p.length / 2)], max: p[p.length - 1] };
+      var d = danio[m.departamento + "|" + m.municipio] || {};
+      return {
+        departamento: m.departamento, municipio: m.municipio, n: p.length,
+        min: p[0], mediana: p[Math.floor(p.length / 2)], max: p[p.length - 1],
+        destruidas: d.destruidas || 0, averiadas: d.averiadas || 0,
+        dano: (d.destruidas || 0) + (d.averiadas || 0),
+      };
     });
-    lista.sort(function (a, b) { return b.n - a.n; });
+    // orden por prioridad de dano (destruidas + averiadas), no por cantidad de oferta:
+    // lo que importa es ver la oferta disponible en los municipios mas danados primero.
+    lista.sort(function (a, b) { return b.dano - a.dano; });
 
     var rankTitle = document.getElementById("fr-rank-title");
     var rankSub = document.getElementById("fr-rank-sub");
-    rankTitle.textContent = frState.depto ? "Municipios de " + frState.depto : "Municipios con oferta";
-    rankSub.textContent = lista.length + " municipios cumplen el filtro actual";
+    rankTitle.textContent = frState.deptos.length === 1 ? "Municipios de " + frState.deptos[0] : "Municipios con oferta";
+    rankSub.textContent = lista.length + " municipios cumplen el filtro actual · ordenados por daño (destruidas + averiadas)";
 
     var rankList = document.getElementById("fr-rank-list");
     rankList.innerHTML = "";
     if (!lista.length) rankList.innerHTML = '<div class="empty-state">Sin avisos que cumplan este filtro.</div>';
-    var maxN = lista.length ? lista[0].n : 1;
+    var maxN = 1;
+    lista.forEach(function (m) { if (m.n > maxN) maxN = m.n; });
     lista.slice(0, 30).forEach(function (m) {
       var row = document.createElement("div");
       row.className = "rank-row";
       row.innerHTML =
-        '<div class="rank-label"><span class="name">' + escapeHtml(m.municipio) + (frState.depto ? "" : ' <span class="name-sub">· ' + escapeHtml(m.departamento) + "</span>") + "</span>" +
+        '<div class="rank-label"><span class="name">' + escapeHtml(m.municipio) + (frState.deptos.length === 1 ? "" : ' <span class="name-sub">· ' + escapeHtml(m.departamento) + "</span>") + "</span>" +
         '<span class="val">' + fmtNum(m.n) + "</span></div>" +
         '<div class="rank-track"><div class="rank-fill" style="width:' + Math.max(3, (m.n / maxN) * 100) + "%;background:" + viridisColor(0.3 + 0.6 * (m.n / maxN)) + '"></div></div>';
       row.addEventListener("click", function () {
-        document.getElementById("fr-depto").value = m.departamento;
-        frState.depto = m.departamento;
+        subToggleArr(frState.deptos, m.departamento);
+        frBuildMultiCheck(frDeptosListCache, "fr-depto-opts", "fr-depto-summary", "deptos", "Todos los departamentos", "departamentos");
         frRenderAll();
       });
       rankList.appendChild(row);
     });
 
     var cardsSub = document.getElementById("fr-cards-sub");
-    cardsSub.textContent = lista.length + " municipios · " + filtrados.length + " avisos en total dentro del filtro";
+    cardsSub.textContent = lista.length + " municipios · " + filtrados.length + " avisos en total dentro del filtro · ordenados por daño (destruidas + averiadas)";
     var cardGrid = document.getElementById("fr-card-grid");
     cardGrid.innerHTML = "";
     if (!lista.length) { cardGrid.innerHTML = '<div class="empty-state">Ajusta los filtros — no hay avisos que cumplan.</div>'; return; }
-    var danio = frDanio();
     var daneDepto = frDaneDepto();
     lista.forEach(function (m) {
-      var d = danio[m.departamento + "|" + m.municipio] || {};
       var daneMed = daneDepto[m.departamento];
-      var dano = (d.destruidas || 0) + (d.averiadas || 0);
-      // el color y tamaño de la esfera reflejan si la oferta de arriendo (avisos)
-      // alcanza a cubrir el daño reportado (viviendas destruidas + averiadas):
-      // sin eso, un municipio con muchos avisos pero daño aun mayor luce "bien"
-      // cuando en realidad la oferta es insuficiente frente a la necesidad real.
-      var st, sz;
-      if (dano <= 0) { st = "st-bajo"; sz = "sz-md"; }
+      // el color de la esfera refleja si la oferta de arriendo (avisos) alcanza a
+      // cubrir el daño reportado (viviendas destruidas + averiadas): sin eso, un
+      // municipio con muchos avisos pero daño aun mayor luce "bien" cuando en
+      // realidad la oferta es insuficiente frente a la necesidad real. El tamaño
+      // es siempre el mismo -- solo el color cambia.
+      var st;
+      if (m.dano <= 0) { st = "st-bajo"; }
       else {
-        var ratio = m.n / dano;
-        if (ratio < 0.5) { st = "st-critico"; sz = "sz-lg"; }
-        else if (ratio < 1) { st = "st-medio"; sz = "sz-md"; }
-        else { st = "st-bajo"; sz = "sz-md"; }
+        var ratio = m.n / m.dano;
+        st = ratio < 0.5 ? "st-critico" : ratio < 1 ? "st-medio" : "st-bajo";
       }
       var card = document.createElement("div");
       card.className = "m-card " + st;
       card.innerHTML =
         '<div class="m-name">' + escapeHtml(m.municipio) + '<span class="name-sub"> · ' + escapeHtml(m.departamento) + "</span></div>" +
-        '<div class="m-badge ' + st + " " + sz + '" title="Avisos en arriendo vs. daño (destruidas+averiadas)">' + m.n + "</div>" +
-        '<div class="m-row"><span>Mediana Finca Raíz</span><b>$' + fmtNum(m.mediana) + "</b></div>" +
+        '<div class="m-badge ' + st + ' sz-sm" title="Avisos en arriendo vs. daño (destruidas+averiadas)">' + fmtNum(m.n) + "</div>" +
+        '<div class="m-row"><span>Mediana datos web</span><b>$' + fmtNum(m.mediana) + "</b></div>" +
         '<div class="m-row"><span>Mediana DANE (depto.)</span><b>' + (daneMed ? "$" + fmtNum(daneMed) : "—") + "</b></div>" +
-        '<div class="m-row"><span>Viviendas destruidas</span><b>' + (d.destruidas !== null && d.destruidas !== undefined ? fmtNum(d.destruidas) : "—") + "</b></div>" +
-        '<div class="m-row"><span>Viviendas averiadas</span><b>' + (d.averiadas !== null && d.averiadas !== undefined ? fmtNum(d.averiadas) : "—") + "</b></div>";
+        '<div class="m-row"><span>Viviendas destruidas</span><b>' + fmtNum(m.destruidas) + "</b></div>" +
+        '<div class="m-row"><span>Viviendas averiadas</span><b>' + fmtNum(m.averiadas) + "</b></div>";
       cardGrid.appendChild(card);
     });
   }
@@ -3775,10 +3857,10 @@
     var avisos = frTodosAvisos();
     if (!avisos.length) return;
 
-    var deptos = Array.from(new Set(avisos.map(function (a) { return a.departamento; }))).sort(function (a, b) { return a.localeCompare(b, "es"); });
-    fillSelect(document.getElementById("fr-depto"), deptos, "Todos los departamentos");
+    frDeptosListCache = Array.from(new Set(avisos.map(function (a) { return a.departamento; }))).sort(function (a, b) { return a.localeCompare(b, "es"); });
     var tipos = Array.from(new Set(avisos.map(function (a) { return a.tipo; }))).sort();
-    fillSelect(document.getElementById("fr-tipo"), tipos, "Todos los tipos");
+    frBuildMultiCheck(frDeptosListCache, "fr-depto-opts", "fr-depto-summary", "deptos", "Todos los departamentos", "departamentos");
+    frBuildMultiCheck(tipos, "fr-tipo-opts", "fr-tipo-summary", "tipos", "Todos los tipos", "tipos");
 
     var precios = avisos.map(function (a) { return a.precio; }).sort(function (a, b) { return a - b; });
     frState.boundsMin = precios[0];
@@ -3794,8 +3876,6 @@
     minInput.value = frState.boundsMin;
     maxInput.value = frState.boundsMax;
 
-    document.getElementById("fr-depto").addEventListener("change", function () { frState.depto = this.value; frRenderAll(); });
-    document.getElementById("fr-tipo").addEventListener("change", function () { frState.tipo = this.value; frRenderAll(); });
     minInput.addEventListener("input", function () {
       frState.precioMin = Math.min(+this.value, frState.precioMax);
       frActualizarSliderUI(); frRenderAll();
@@ -3804,10 +3884,18 @@
       frState.precioMax = Math.max(+this.value, frState.precioMin);
       frActualizarSliderUI(); frRenderAll();
     });
+    document.addEventListener("click", function (ev) {
+      ["fr-depto-dd", "fr-tipo-dd"].forEach(function (id) {
+        var dd = document.getElementById(id);
+        if (dd && dd.open && !dd.contains(ev.target)) dd.open = false;
+      });
+    });
     document.getElementById("fr-btn-reset").addEventListener("click", function () {
-      frState.depto = ""; frState.tipo = "";
+      frState.deptos = []; frState.tipos = [];
       frState.precioMin = frState.boundsMin; frState.precioMax = frState.boundsMax;
-      document.getElementById("fr-depto").value = ""; document.getElementById("fr-tipo").value = "";
+      frBuildMultiCheck(frDeptosListCache, "fr-depto-opts", "fr-depto-summary", "deptos", "Todos los departamentos", "departamentos");
+      var tiposReset = Array.from(new Set(frTodosAvisos().map(function (a) { return a.tipo; }))).sort();
+      frBuildMultiCheck(tiposReset, "fr-tipo-opts", "fr-tipo-summary", "tipos", "Todos los tipos", "tipos");
       minInput.value = frState.boundsMin; maxInput.value = frState.boundsMax;
       frActualizarSliderUI(); frRenderAll();
     });
@@ -4040,7 +4128,16 @@
     });
 
     var cardsSub = document.getElementById("sub-cards-sub");
-    cardsSub.textContent = lista.length + " municipios · " + fmtNum(filas.length) + " registros históricos dentro del filtro";
+    var filtrosActivos = [];
+    if (subState.deptos.length) filtrosActivos.push(subState.deptos.length === 1 ? subState.deptos[0] : subState.deptos.length + " departamentos");
+    if (subState.municipios.length) filtrosActivos.push(subState.municipios.length === 1 ? subState.municipios[0] : subState.municipios.length + " municipios");
+    if (subState.periodos.length) filtrosActivos.push("periodo " + (subState.periodos.length === 1 ? subState.periodos[0] : subState.periodos.length + " seleccionados"));
+    if (subState.anios.length) filtrosActivos.push("año " + (subState.anios.length === 1 ? subState.anios[0] : subState.anios.length + " seleccionados"));
+    if (subState.modalidades.length) filtrosActivos.push(subState.modalidades.length === 1 ? subState.modalidades[0] : subState.modalidades.length + " modalidades");
+    if (subState.programas.length) filtrosActivos.push(subState.programas.length === 1 ? subState.programas[0] : subState.programas.length + " programas");
+    if (subState.esquema) filtrosActivos.push(subState.esquema);
+    cardsSub.textContent = lista.length + " municipios · " + fmtNum(filas.length) + " registros históricos que cumplen " +
+      (filtrosActivos.length ? "los filtros: " + filtrosActivos.join(", ") : "todos los filtros (sin restricción aplicada)");
     var cardGrid = document.getElementById("sub-card-grid");
     cardGrid.innerHTML = "";
     if (!lista.length) { cardGrid.innerHTML = '<div class="empty-state">Sin registros que cumplan este filtro.</div>'; return; }

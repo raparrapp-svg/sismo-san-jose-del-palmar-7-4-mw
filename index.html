@@ -207,6 +207,11 @@
   .multi-check-row:hover { background: var(--surface-2, rgba(127,127,127,.12)); }
   .multi-check-row input { margin: 0; }
   .multi-check.is-disabled summary { opacity: .55; pointer-events: none; }
+  .flag-chip {
+    display: inline-block; width: 15px; height: 10px; vertical-align: middle;
+    margin-right: 6px; border-radius: 1px; flex: none;
+    box-shadow: 0 0 0 1px rgba(0,0,0,.18) inset;
+  }
   @media (max-width: 640px) {
     .filter-fields.open .multi-check summary { width: 100%; }
     .filter-fields.open .multi-check-panel { left: 0; right: 0; min-width: 0; }
@@ -2463,6 +2468,37 @@
     return "rgb(" + r + "," + g + "," + bl + ")";
   }
 
+  // Banderas oficiales de los departamentos (representacion simplificada: franjas
+  // de color segun la descripcion heraldica publica de cada una, sin escudo ni
+  // proporciones exactas de pixel). dir "h" = franjas horizontales, "v" = verticales.
+  var DEPT_FLAGS = {
+    "Antioquia": { dir: "h", colors: ["#ffffff", "#009b48"] },
+    "Bolívar": { dir: "h", colors: ["#fcd116", "#009b48", "#ce1126"] },
+    "Caldas": { dir: "v", colors: ["#fcd116", "#009b48"] },
+    "Cauca": { dir: "h", colors: ["#009b48", "#fcd116", "#009b48"] },
+    "Chocó": { dir: "h", colors: ["#009b48", "#009b48", "#fcd116", "#6cace4"] },
+    "Cundinamarca": { dir: "h", colors: ["#6cace4", "#fcd116", "#ce1126"] },
+    "Huila": { dir: "h", colors: ["#ffffff", "#009b48", "#fcd116"] },
+    "Norte de Santander": { dir: "h", colors: ["#ce1126", "#1a1a1a"] },
+    "Putumayo": { dir: "h", colors: ["#1a1a1a", "#ffffff", "#009b48"] },
+    "Quindío": { dir: "v", colors: ["#009b48", "#fcd116", "#6b3fa0"] },
+    "Risaralda": { dir: "h", colors: ["#00a86b"] },
+    "Sucre": { dir: "h", colors: ["#009b48", "#ffffff"] },
+    "Tolima": { dir: "h", colors: ["#7b2d3f", "#fcd116"] },
+    "Valle del Cauca": { dir: "h", colors: ["#6cace4", "#ffffff"] },
+  };
+
+  function flagChipHtml(deptName) {
+    var f = DEPT_FLAGS[deptName];
+    if (!f) return "";
+    var n = f.colors.length;
+    var stops = f.colors.map(function (c, i) {
+      return c + " " + (i / n * 100) + "%, " + c + " " + ((i + 1) / n * 100) + "%";
+    }).join(", ");
+    return '<span class="flag-chip" title="Bandera de ' + deptName + ' (representación simplificada)" style="background:linear-gradient(' +
+      (f.dir === "v" ? "to right" : "to bottom") + ", " + stops + ')"></span>';
+  }
+
   function buildDeptoCheckSingle(opts, panelId, summaryId, todosLabel, getSelected, onSelect) {
     var panel = document.getElementById(panelId);
     var summary = document.getElementById(summaryId);
@@ -2713,7 +2749,7 @@
       var row = document.createElement("div");
       row.className = "rank-row" + (e.value <= 0 ? " is-zero" : "");
       row.innerHTML =
-        '<div class="rank-label"><span class="name">' + escapeHtml(e.name) + "</span>" +
+        '<div class="rank-label"><span class="name">' + (state.depto ? "" : flagChipHtml(e.name)) + escapeHtml(e.name) + "</span>" +
         '<span class="val">' + (e.value > 0 ? fmtNum(e.value) : "Sin datos") + "</span></div>" +
         '<div class="rank-track"><div class="rank-fill" style="width:' + Math.max(3, (e.value / max) * 100) + "%;background:" + (e.value > 0 ? viridisColor(0.35 + 0.55 * (e.value / max)) : "var(--gridline)") + '"></div></div>';
       row.addEventListener("click", function () {
@@ -2903,7 +2939,7 @@
       g.appendChild(path);
 
       path.addEventListener("mouseenter", function (ev) {
-        var html = '<div class="tt-title">' + (rec ? rec.departamento : titleCase(name)) + "</div>";
+        var html = '<div class="tt-title">' + (rec ? flagChipHtml(rec.departamento) + rec.departamento : titleCase(name)) + "</div>";
         if (rec) {
           html += '<div class="tt-row"><span>' + METRICS.filter(function (m) { return m.key === state.metric; })[0].label + '</span><span>' + fmtNum(val) + "</span></div>";
           html += '<div class="tt-row"><span>Municipios listados</span><span>' + rec.municipiosListados + "</span></div>";
@@ -3221,7 +3257,7 @@
       var row = document.createElement("div");
       row.className = "rank-row" + (e.value <= 0 ? " is-zero" : "");
       row.innerHTML =
-        '<div class="rank-label"><span class="name">' + escapeHtml(e.name) + "</span>" +
+        '<div class="rank-label"><span class="name">' + (state.depto ? "" : flagChipHtml(e.name)) + escapeHtml(e.name) + "</span>" +
         '<span class="val">' + (e.value > 0 ? fmtNum(e.value) : "Sin datos") + "</span></div>" +
         '<div class="rank-track"><div class="rank-fill" style="width:' + Math.max(3, (e.value / max) * 100) + "%;background:" + (e.value > 0 ? viridisColor(0.35 + 0.55 * (e.value / max)) : "var(--gridline)") + '"></div></div>';
       row.addEventListener("click", function () {
@@ -3408,7 +3444,7 @@
       g.appendChild(path);
 
       path.addEventListener("mouseenter", function (ev) {
-        var html = '<div class="tt-title">' + (rec ? rec.departamento : titleCase(name)) + "</div>";
+        var html = '<div class="tt-title">' + (rec ? flagChipHtml(rec.departamento) + rec.departamento : titleCase(name)) + "</div>";
         if (rec) {
           html += '<div class="tt-row"><span>' + METRICS.filter(function (m) { return m.key === state.metric; })[0].label + '</span><span>' + fmtNum(val) + "</span></div>";
           html += '<div class="tt-row"><span>Municipios listados</span><span>' + rec.municipiosListados + "</span></div>";
@@ -3691,8 +3727,9 @@
       frMapPaths[name] = path;
       path.addEventListener("mouseenter", function (ev) {
         var rec = findDeptRecord(name);
-        var n = rec ? frFiltrar().filter(function (a) { return a.departamento === rec.departamento; }).length : 0;
-        tooltip.innerHTML = '<div class="tt-title">' + (rec ? rec.departamento : name) + '</div><div class="tt-row"><span>Avisos que cumplen el filtro</span><span>' + fmtNum(n) + "</span></div>";
+        var n = rec ? (frDanioPorDepto()[rec.departamento] || 0) : 0;
+        var avisos = rec ? frFiltrar().filter(function (a) { return a.departamento === rec.departamento; }).length : 0;
+        tooltip.innerHTML = '<div class="tt-title">' + (rec ? flagChipHtml(rec.departamento) + rec.departamento : name) + '</div><div class="tt-row"><span>Viv. destruidas + averiadas</span><span>' + fmtNum(n) + '</span></div><div class="tt-row"><span>Avisos que cumplen el filtro</span><span>' + fmtNum(avisos) + "</span></div>";
         tooltip.style.display = "block";
         tooltip.style.left = (ev.clientX + 14) + "px"; tooltip.style.top = (ev.clientY + 14) + "px";
       });
@@ -4059,7 +4096,7 @@
       });
       path.addEventListener("mouseenter", function (ev) {
         var rec = findDeptRecord(name);
-        tooltip.innerHTML = '<div class="tt-title">' + (rec ? rec.departamento : name) + "</div>";
+        tooltip.innerHTML = '<div class="tt-title">' + (rec ? flagChipHtml(rec.departamento) + rec.departamento : name) + "</div>";
         tooltip.style.display = "block";
         tooltip.style.left = (ev.clientX + 14) + "px"; tooltip.style.top = (ev.clientY + 14) + "px";
       });

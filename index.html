@@ -2490,7 +2490,7 @@
   var state = { depto: "", municipio: "", metric: "viviendasAveriadas", search: "" };
 
   // ---------- header meta ----------
-  document.getElementById("header-titulo").textContent = "Reporte Situacional No. " + DATA.meta.numeroReporte + " — Sismo " + DATA.meta.magnitud + " Mw";
+  document.getElementById("header-titulo").textContent = "Reporte Situacional — Sismo " + DATA.meta.magnitud + " Mw";
   var fechaSismoDDMMYYYY = DATA.meta.fechaSismo.split("-").reverse().join("/");
   document.getElementById("header-fecha").textContent = fechaSismoDDMMYYYY + " · " + DATA.meta.epicentro;
   document.getElementById("nota-agregados").textContent = DATA.meta.notaAgregados;
@@ -2882,7 +2882,10 @@
 
   function renderDeptoMapView() {
     document.getElementById("map-title").textContent = "Mapa por departamento";
-    var project = buildProjection(COLOMBIA_GEOJSON.features, VIEW_W, VIEW_H, 18);
+    // encuadre a los departamentos con datos en este reporte (no todo el pais),
+    // para que el mapa se vea mas cercano en vez de mostrar el mapa completo de Colombia
+    var featsAfectados = COLOMBIA_GEOJSON.features.filter(function (f) { return !!findDeptRecord(f.properties.NOMBRE_DPT); });
+    var project = buildProjection(featsAfectados.length ? featsAfectados : COLOMBIA_GEOJSON.features, VIEW_W, VIEW_H, 18);
     var max = 0;
     DEPTS.forEach(function (d) { max = Math.max(max, d[state.metric] || 0); });
 

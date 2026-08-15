@@ -5,79 +5,79 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Tablero de Afectaciones — Sismo 7.4 Chocó</title>
 <style>
-  /* Paleta institucional GOV.CO / Ministerio de Vivienda, Ciudad y Territorio */
+  /* Identidad "sala de crisis": fondo oscuro por defecto, acento dorado de marca,
+     degradado rosa->rojo para severidad de dano (mapas y barras). Version clara
+     mantiene el mismo espiritu sobre un fondo papel calido. */
   :root {
-    --gov-blue:       #3366cc;
-    --gov-blue-dark:  #004884;
-    --gov-yellow:     #ffab00;
-    --gov-red:        #a80521;
-    --gov-green:      #069169;
+    --surface-1:      #fffdfa;
+    --page-plane:     #f3ede3;
+    --text-primary:   #211f1c;
+    --text-secondary: #5c554a;
+    --text-muted:     #8c8375;
+    --gridline:       rgba(33,31,28,0.08);
+    --baseline:       rgba(33,31,28,0.16);
+    --border:         rgba(33,31,28,0.12);
+    --card-bg:        #fffdfa;
 
-    --surface-1:      #ffffff;
-    --page-plane:     #f2f5f9;
-    --text-primary:   #12263f;
-    --text-secondary: #4a5c73;
-    --text-muted:     #73839a;
-    --gridline:       #dde5ee;
-    --baseline:       #c3cfdd;
-    --border:         rgba(0,72,132,0.14);
-    --card-bg:        #ffffff;
+    --status-good: #2f7a54;
+    --status-warning: #a67c1e;
+    --status-serious: #c94e35;
+    --status-critical: #a3281a;
 
-    --status-good: #069169;
-    --status-warning: #b07800;
-    --status-serious: #c8500a;
-    --status-critical: #a80521;
-
-    --map-empty: #e3e9f0;
-    --map-stroke: #ffffff;
-    --map-select-stroke: #004884;
-    --accent: #3366cc;
+    --map-empty: #e9e2d4;
+    --map-stroke: #fffdfa;
+    --map-select-stroke: #a67c1e;
+    --accent: #b8402c;
+    --brand-gold: #a67c1e;
+    --radius-tight: 2px;
   }
   /* Tema oscuro: se aplica por configuracion del equipo, salvo que el usuario
      haya forzado el tema claro con el boton; y siempre si forzo el oscuro. */
   @media (prefers-color-scheme: dark) {
     :root:not([data-tema="claro"]) {
-      --surface-1:      #0f1a26;
-      --page-plane:     #0a121b;
-      --text-primary:   #ffffff;
-      --text-secondary: #b8c6d9;
-      --text-muted:     #8496ad;
-      --gridline:       #1e2c3c;
-      --baseline:       #2a3b4f;
-      --border:         rgba(255,255,255,0.12);
-      --card-bg:        #13202e;
+      --surface-1:      #171514;
+      --page-plane:     #0d0c0b;
+      --text-primary:   #f3ece2;
+      --text-secondary: #a89f92;
+      --text-muted:     #6d655a;
+      --gridline:       rgba(240,225,210,0.09);
+      --baseline:       rgba(240,225,210,0.18);
+      --border:         rgba(240,225,210,0.10);
+      --card-bg:        #171514;
 
-      --status-good: #16b984;
-      --status-warning: #ffab00;
-      --status-serious: #ef8b4f;
-      --status-critical: #e5646a;
+      --status-good: #4f9d76;
+      --status-warning: #c9a13a;
+      --status-serious: #dd5c45;
+      --status-critical: #c22f1e;
 
-      --map-empty: #1c2836;
-      --map-stroke: #0f1a26;
-      --map-select-stroke: #ffffff;
-      --accent: #5b8fe0;
+      --map-empty: #221f1c;
+      --map-stroke: #0d0c0b;
+      --map-select-stroke: #c9a13a;
+      --accent: #dd5c45;
+      --brand-gold: #c9a13a;
     }
   }
   :root[data-tema="oscuro"] {
-    --surface-1:      #0f1a26;
-    --page-plane:     #0a121b;
-    --text-primary:   #ffffff;
-    --text-secondary: #b8c6d9;
-    --text-muted:     #8496ad;
-    --gridline:       #1e2c3c;
-    --baseline:       #2a3b4f;
-    --border:         rgba(255,255,255,0.12);
-    --card-bg:        #13202e;
+    --surface-1:      #171514;
+    --page-plane:     #0d0c0b;
+    --text-primary:   #f3ece2;
+    --text-secondary: #a89f92;
+    --text-muted:     #6d655a;
+    --gridline:       rgba(240,225,210,0.09);
+    --baseline:       rgba(240,225,210,0.18);
+    --border:         rgba(240,225,210,0.10);
+    --card-bg:        #171514;
 
-    --status-good: #16b984;
-    --status-warning: #ffab00;
-    --status-serious: #ef8b4f;
-    --status-critical: #e5646a;
+    --status-good: #4f9d76;
+    --status-warning: #c9a13a;
+    --status-serious: #dd5c45;
+    --status-critical: #c22f1e;
 
-    --map-empty: #1c2836;
-    --map-stroke: #0f1a26;
-    --map-select-stroke: #ffffff;
-    --accent: #5b8fe0;
+    --map-empty: #221f1c;
+    --map-stroke: #0d0c0b;
+    --map-select-stroke: #c9a13a;
+    --accent: #dd5c45;
+    --brand-gold: #c9a13a;
   }
 
   * { box-sizing: border-box; }
@@ -92,7 +92,7 @@
   /* ---- encabezado institucional (barra GOV.CO azul + banda blanca de la entidad) ---- */
   .gov-header {
     border: 1px solid var(--border);
-    border-radius: 12px;
+    border-radius: 3px;
     overflow: hidden;
     margin-bottom: 16px;
   }
@@ -115,13 +115,38 @@
   .gov-flag i:nth-child(2) { background: #003893; }
   .gov-flag i:nth-child(3) { background: #ce1126; }
 
+  /* ---- cinta de datos: franja completa arriba, se pausa al pasar el mouse ---- */
+  .ticker-bar {
+    background: var(--map-empty); border-bottom: 1px solid var(--border);
+    overflow: hidden; margin: -20px calc(-1 * clamp(12px, 3vw, 32px)) 16px;
+    padding-left: clamp(12px, 3vw, 32px);
+  }
+  .ticker-mask {
+    -webkit-mask-image: linear-gradient(to right, transparent, #000 30px, #000 calc(100% - 30px), transparent);
+    mask-image: linear-gradient(to right, transparent, #000 30px, #000 calc(100% - 30px), transparent);
+  }
+  .ticker-track { display: flex; gap: 40px; white-space: nowrap; width: max-content; padding: 8px 0; animation: sismo-ticker-scroll 32s linear infinite; }
+  .ticker-bar:hover .ticker-track { animation-play-state: paused; }
+  @keyframes sismo-ticker-scroll { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+  @media (prefers-reduced-motion: reduce) { .ticker-track { animation: none; } }
+  .ticker-track span { font-size: 12px; color: var(--text-secondary); }
+  .ticker-track span b { color: var(--status-critical); font-variant-numeric: tabular-nums; font-weight: 700; margin-left: 6px; }
+
   header.app-header {
     display: flex; flex-wrap: wrap; gap: 16px;
-    justify-content: space-between; align-items: flex-end;
+    justify-content: space-between; align-items: center;
     margin-bottom: 18px;
   }
-  header.app-header h1 { font-size: 22px; margin: 0 0 4px; font-weight: 700; }
-  header.app-header .subtitle { color: var(--text-secondary); font-size: 13.5px; }
+  header.app-header .brand-row { display: flex; align-items: center; gap: 13px; }
+  header.app-header .brand-mark {
+    width: 44px; height: 44px; flex: none; border: 1.5px solid var(--brand-gold); color: var(--brand-gold);
+    display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1;
+    font-weight: 800;
+  }
+  header.app-header .brand-mark .n { font-size: 15px; }
+  header.app-header .brand-mark .u { font-size: 7px; letter-spacing: .06em; margin-top: 2px; }
+  header.app-header h1 { font-size: 21px; margin: 0 0 3px; font-weight: 800; letter-spacing: -0.01em; }
+  header.app-header .subtitle { color: var(--text-muted); font-size: 12.5px; }
   header.app-header .meta-tags { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
   .tag {
     font-size: 11.5px; padding: 3px 9px; border-radius: 999px;
@@ -142,7 +167,7 @@
   .filter-bar {
     display: flex; flex-wrap: wrap; gap: 10px; align-items: center;
     background: var(--card-bg); border: 1px solid var(--border);
-    border-radius: 12px; padding: 12px 14px; margin-bottom: 18px;
+    border-radius: 3px; padding: 12px 14px; margin-bottom: 18px;
     position: sticky; top: 8px; z-index: 20;
   }
   .filter-fields { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; flex: 1; }
@@ -152,7 +177,7 @@
   select, input[type="search"] {
     font: inherit; font-size: 13px;
     background: var(--surface-1); color: var(--text-primary);
-    border: 1px solid var(--border); border-radius: 8px;
+    border: 1px solid var(--border); border-radius: 3px;
     padding: 7px 10px; min-width: 170px;
   }
   input[type="search"] { min-width: 220px; }
@@ -163,7 +188,7 @@
   .multi-check summary {
     font: inherit; font-size: 13px;
     background: var(--surface-1); color: var(--text-primary);
-    border: 1px solid var(--border); border-radius: 8px;
+    border: 1px solid var(--border); border-radius: 3px;
     padding: 7px 10px; min-width: 170px;
     cursor: pointer; list-style: none; white-space: nowrap;
   }
@@ -171,7 +196,7 @@
   .multi-check summary::after { content: " ▾"; }
   .multi-check-panel {
     position: absolute; top: calc(100% + 4px); left: 0; z-index: 30;
-    background: var(--surface-1); border: 1px solid var(--border); border-radius: 8px;
+    background: var(--surface-1); border: 1px solid var(--border); border-radius: 3px;
     padding: 6px; min-width: 200px; max-height: 240px; overflow-y: auto;
     box-shadow: 0 8px 24px rgba(0,0,0,.18);
     display: flex; flex-direction: column; gap: 2px;
@@ -196,7 +221,7 @@
   button.btn {
     font: inherit; font-size: 13px; font-weight: 600;
     background: var(--surface-1); color: var(--text-primary);
-    border: 1px solid var(--border); border-radius: 8px;
+    border: 1px solid var(--border); border-radius: 3px;
     padding: 8px 12px; cursor: pointer;
   }
   button.btn:hover { background: var(--gridline); }
@@ -211,7 +236,7 @@
   }
   .kpi-tile {
     background: var(--card-bg); border: 1px solid var(--border);
-    border-radius: 12px; padding: 12px 14px;
+    border-radius: 3px; padding: 12px 14px;
   }
   .kpi-tile .label { font-size: 12px; color: var(--text-secondary); margin-bottom: 6px; }
   .kpi-tile .value { font-size: 26px; font-weight: 700; line-height: 1; }
@@ -240,7 +265,7 @@
 
   .panel {
     background: var(--card-bg); border: 1px solid var(--border);
-    border-radius: 12px; padding: 16px;
+    border-radius: 3px; padding: 16px;
   }
   .panel h2 { font-size: 14.5px; margin: 0 0 2px; font-weight: 700; }
   .panel .panel-sub { font-size: 12px; color: var(--text-muted); margin-bottom: 10px; }
@@ -259,7 +284,7 @@
   .map-tooltip {
     position: fixed; pointer-events: none; z-index: 100;
     background: var(--text-primary); color: var(--surface-1);
-    font-size: 12px; padding: 8px 10px; border-radius: 8px;
+    font-size: 12px; padding: 8px 10px; border-radius: 3px;
     max-width: 240px; box-shadow: 0 4px 16px rgba(0,0,0,.25);
     display: none;
   }
@@ -308,7 +333,7 @@
   .card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 10px; }
   .m-card {
     background: var(--card-bg); border: 1px solid var(--border); border-left: 4px solid var(--border);
-    border-radius: 10px; padding: 12px 14px; position: relative;
+    border-radius: 3px; padding: 12px 14px; position: relative;
   }
   .m-card.st-critico { border-left-color: var(--status-critical); }
   .m-card.st-alto { border-left-color: var(--status-serious); }
@@ -349,7 +374,7 @@
   .footnote {
     font-size: 12px; color: var(--text-secondary); line-height: 1.5;
     background: var(--card-bg); border: 1px solid var(--border);
-    border-radius: 12px; padding: 12px 14px; margin-top: 18px;
+    border-radius: 3px; padding: 12px 14px; margin-top: 18px;
   }
   .footnote b { color: var(--text-primary); }
   .empty-state { padding: 30px; text-align: center; color: var(--text-muted); font-size: 13px; grid-column: 1/-1; }
@@ -358,12 +383,12 @@
   .tab-nav {
     display: flex; gap: 6px; margin-bottom: 16px; flex-wrap: wrap;
     background: var(--card-bg); border: 1px solid var(--border);
-    border-radius: 12px; padding: 6px;
+    border-radius: 3px; padding: 6px;
   }
   .tab-btn {
     font: inherit; font-size: 13px; font-weight: 600;
     background: transparent; color: var(--text-secondary);
-    border: none; border-radius: 8px; padding: 9px 14px; cursor: pointer;
+    border: none; border-radius: 3px; padding: 9px 14px; cursor: pointer;
     flex: 1; min-width: 150px; text-align: center;
   }
   .tab-btn:hover { background: var(--gridline); color: var(--text-primary); }
@@ -445,15 +470,24 @@
 </head>
 <body>
 
+<div class="ticker-bar">
+  <div class="ticker-mask">
+    <div class="ticker-track" id="ticker-track"></div>
+  </div>
+</div>
+
 <header class="app-header">
-  <div>
-    <h1>Tablero de Afectaciones — Sismo 7.4 Chocó</h1>
-    <div class="subtitle">Recolección de información EDAN por departamento y municipio · para apoyo a la toma de decisiones</div>
-    <div class="meta-tags">
-      <span class="tag" id="tag-fecha"></span>
-      <span class="tag" id="tag-corte"></span>
-      <span class="tag" id="tag-registros"></span>
-      <span class="tag" id="tag-deptos"></span>
+  <div class="brand-row">
+    <div class="brand-mark"><span class="n">7.4</span><span class="u">MW</span></div>
+    <div>
+      <h1>Tablero de Afectaciones — Sismo 7.4 Chocó</h1>
+      <div class="subtitle">Recolección de información EDAN por departamento y municipio · para apoyo a la toma de decisiones</div>
+      <div class="meta-tags">
+        <span class="tag" id="tag-fecha"></span>
+        <span class="tag" id="tag-corte"></span>
+        <span class="tag" id="tag-registros"></span>
+        <span class="tag" id="tag-deptos"></span>
+      </div>
     </div>
   </div>
   <button class="theme-toggle" id="btn-tema" type="button" aria-label="Cambiar entre modo claro y oscuro">
@@ -2384,7 +2418,7 @@
   };
 
   // viridis-ish ramp: dark blue/purple -> teal -> "amarillo biche"
-  var VIRIDIS = ["#440154","#472d7b","#3b528b","#2c728e","#21918c","#28ae80","#5ec962","#addc30","#fde725"];
+  var VIRIDIS = ["#f7ded7","#f0b8ab","#e8927e","#dd5c45","#c22f1e","#a02318","#7a1710"];
 
   var fmt = new Intl.NumberFormat("es-CO");
   function fmtNum(v) { return (v === null || v === undefined) ? null : fmt.format(v); }
@@ -2426,6 +2460,23 @@
   document.getElementById("tag-registros").textContent = ROWS.length + " registros";
   document.getElementById("tag-deptos").textContent = DEPTS.length + " departamentos";
   document.getElementById("nota-agregados").textContent = DATA.meta.notaAgregados;
+
+  // ---------- cinta de datos (arriba de todo, se pausa al pasar el mouse) ----------
+  (function () {
+    var track = document.getElementById("ticker-track");
+    if (!track) return;
+    var ordenados = DEPTS.slice().sort(function (a, b) {
+      var da = (a.viviendasDestruidas || 0) + (a.viviendasAveriadas || 0);
+      var db = (b.viviendasDestruidas || 0) + (b.viviendasAveriadas || 0);
+      return db - da;
+    }).filter(function (d) { return (d.viviendasDestruidas || 0) + (d.viviendasAveriadas || 0) > 0; });
+    var items = ordenados.map(function (d) {
+      var v = (d.viviendasDestruidas || 0) + (d.viviendasAveriadas || 0);
+      return '<span>' + escapeHtml(d.departamento) + '<b>' + fmt.format(v) + ' viv.</b></span>';
+    });
+    // se duplica la lista para que el scroll de -50% sea continuo (sin salto)
+    track.innerHTML = items.join("") + items.join("");
+  })();
 
   // ---------- mobile filter toggle ----------
   var filterFields = document.getElementById("filter-fields");
@@ -3609,7 +3660,7 @@
     var legendMax = document.getElementById("fr-map-legend");
     legendMax.innerHTML = "Menor" +
       ["--seq-100", "--seq-300", "--seq-450", "--seq-600", "--seq-700"].map(function () { return ""; }).join("") +
-      '<div class="legend-gradient" style="background:linear-gradient(to right,#440154,#472d7b,#3b528b,#2c728e,#21918c,#28ae80,#5ec962,#addc30,#fde725)"></div>' +
+      '<div class="legend-gradient" style="background:linear-gradient(to right,#f7ded7,#f0b8ab,#e8927e,#dd5c45,#c22f1e,#a02318,#7a1710)"></div>' +
       "Mayor" + '<span style="margin-left:10px;">Máx.: <b style="color:var(--text-primary)">' + fmtNum(max) + " avisos</b></span>";
   }
 
@@ -3965,7 +4016,7 @@
       path.classList.toggle("is-selected", !!(rec && subState.deptos.indexOf(rec.departamento) !== -1));
     });
     document.getElementById("sub-map-legend").innerHTML = "Menor" +
-      '<div class="legend-gradient" style="background:linear-gradient(to right,#440154,#472d7b,#3b528b,#2c728e,#21918c,#28ae80,#5ec962,#addc30,#fde725)"></div>' +
+      '<div class="legend-gradient" style="background:linear-gradient(to right,#f7ded7,#f0b8ab,#e8927e,#dd5c45,#c22f1e,#a02318,#7a1710)"></div>' +
       "Mayor" + '<span style="margin-left:10px;">Máx. viv. destruidas+averiadas: <b style="color:var(--text-primary)">' + fmtNum(max) + "</b></span>";
 
     var rankList = document.getElementById("sub-rank-list");

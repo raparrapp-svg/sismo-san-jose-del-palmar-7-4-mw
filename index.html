@@ -341,12 +341,18 @@
   .card-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
   .card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 10px; }
   .card-grid.wide { grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); }
-  /* Subsidios: el desglose necesita mas ancho; en movil se desplaza dentro de la tarjeta. */
-  #sub-card-grid { grid-template-columns: repeat(auto-fill, minmax(min(100%, 560px), 1fr)); align-items: start; }
-  #sub-card-grid .m-card { min-width: 0; }
-  #sub-card-grid .m-row { flex-wrap: wrap; gap: 2px 12px; }
+  /* Subsidios: tres columnas compactas en escritorio; desglose contenido en movil. */
+  #sub-card-grid { grid-template-columns: repeat(auto-fill, minmax(min(100%, 360px), 1fr)); align-items: start; }
+  #sub-card-grid .m-card { min-width: 0; padding: 10px; }
+  #sub-card-grid .m-name { font-size: 12px; padding-right: 0; }
+  #sub-card-grid .m-row { font-size: 11px; flex-wrap: wrap; gap: 2px 8px; }
   #sub-card-grid .m-row b { margin-left: auto; }
-  #sub-card-grid .m-more-content { max-width: 100%; overflow-x: auto; white-space: normal; }
+  #sub-card-grid .m-more { font-size: 10px; }
+  #sub-card-grid .m-more-content { padding: 4px; max-width: 100%; overflow-x: auto; white-space: normal; }
+  #sub-card-grid .m-breakdown { font-size: 9.5px; }
+  #sub-card-grid .m-breakdown th, #sub-card-grid .m-breakdown td { padding: 5px 3px; }
+  #sub-card-grid .m-breakdown thead th { font-size: 8px; letter-spacing: 0; white-space: normal; }
+  #sub-card-grid .m-breakdown .programa-row td:first-child { padding-left: 6px; }
   .m-breakdown { width: 100%; border-collapse: collapse; font-size: 11px; margin-top: 6px; }
   .m-breakdown th, .m-breakdown td { text-align: center; padding: 6px 5px; }
   .m-breakdown thead th {

@@ -340,6 +340,13 @@
   /* ---- municipio card grid ---- */
   .card-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
   .card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 10px; }
+  .card-grid.wide { grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); }
+  .m-breakdown { width: 100%; border-collapse: collapse; font-size: 11px; margin-top: 4px; }
+  .m-breakdown .modalidad-row td { font-weight: 700; padding: 5px 2px 2px; color: var(--text-primary); border-top: 1px solid var(--border); }
+  .m-breakdown .programa-row td { padding: 2px 2px 2px 12px; color: var(--text-secondary); }
+  .m-breakdown .programa-row td.num-cell, .m-breakdown .modalidad-row td.num-cell { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .m-breakdown thead th { font-size: 10px; text-transform: uppercase; letter-spacing: .02em; color: var(--text-muted); text-align: left; padding: 2px; font-weight: 600; }
+  .m-breakdown thead th.num-cell { text-align: right; }
   .m-card {
     background: var(--card-bg); border: 1px solid var(--border); border-left: 4px solid var(--border);
     border-radius: 3px; padding: 12px 14px; position: relative;
@@ -361,10 +368,6 @@
   .m-badge.sz-sm { min-width: 24px; height: 24px; font-size: 10.5px; }
   .m-name { font-weight: 700; font-size: 13.5px; padding-right: 42px; margin-bottom: 8px; line-height: 1.25; }
   .m-row { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-secondary); padding: 2px 0; }
-  .m-row-tags { margin-top: 6px; padding-bottom: 0; }
-  .m-row-tags span { font-size: 11px; text-transform: uppercase; letter-spacing: .02em; color: var(--text-muted); }
-  .m-tags { display: flex; flex-wrap: wrap; gap: 4px; margin: 3px 0 6px; }
-  .m-tags .tag { font-size: 10.5px; padding: 2px 7px; }
   .m-row b { color: var(--text-primary); font-weight: 600; font-variant-numeric: tabular-nums; }
   .m-note { margin-top: 8px; font-size: 11px; color: var(--text-muted); }
   .m-more { margin-top: 8px; font-size: 11px; color: var(--accent); cursor: pointer; user-select: none; }
@@ -883,7 +886,7 @@
 
   <h3 class="prio-subtitle">Detalle por municipio</h3>
   <div class="panel-sub" id="sub-cards-sub"></div>
-  <div class="card-grid" id="sub-card-grid"></div>
+  <div class="card-grid wide" id="sub-card-grid"></div>
 </div>
 </div><!-- /page-subsidios -->
 
@@ -4127,6 +4130,7 @@
 
   // ---------- pagina: programas del Ministerio ----------
   var subState = { deptos: [], municipios: [], periodos: [], anios: [], modalidades: [], programas: [], esquema: "" };
+  var subOpenCards = {}; // "depto|municipio" -> bool, recuerda que tarjetas tienen el desglose abierto
 
   function subToggleArr(arr, v) {
     var i = arr.indexOf(v);
@@ -4183,7 +4187,7 @@
         out[f.cod] = {
           codigo: f.cod, departamento: m.departamento, municipio: m.municipio,
           hogares: 0, valor: 0, legalizados: 0, valorLegalizado: 0,
-          programasSet: {}, modalidadesSet: {},
+          porModalidad: {},
         };
       }
       var o = out[f.cod];
@@ -4191,16 +4195,44 @@
       o.valor += f.valor || 0;
       o.legalizados += f.legalizados || 0;
       o.valorLegalizado += f.valorLegalizado || 0;
-      if (f.programa) o.programasSet[(f.programa || "").trim()] = true;
-      if (f.modalidad) o.modalidadesSet[f.modalidad] = true;
-    });
-    Object.keys(out).forEach(function (k) {
-      var o = out[k];
-      o.programas = Object.keys(o.programasSet).sort(function (a, b) { return a.localeCompare(b, "es"); });
-      o.modalidades = Object.keys(o.modalidadesSet).sort(function (a, b) { return a.localeCompare(b, "es"); });
-      delete o.programasSet; delete o.modalidadesSet;
+
+      // desglose modalidad -> programa, para el detalle expandible de cada tarjeta
+      var modalidad = f.modalidad || "Sin modalidad";
+      var programa = (f.programa || "Sin programa").trim();
+      if (!o.porModalidad[modalidad]) o.porModalidad[modalidad] = {};
+      if (!o.porModalidad[modalidad][programa]) {
+        o.porModalidad[modalidad][programa] = { hogares: 0, valor: 0, legalizados: 0, valorLegalizado: 0 };
+      }
+      var pp = o.porModalidad[modalidad][programa];
+      pp.hogares += f.hogares || 0;
+      pp.valor += f.valor || 0;
+      pp.legalizados += f.legalizados || 0;
+      pp.valorLegalizado += f.valorLegalizado || 0;
     });
     return out;
+  }
+
+  function subDesgloseHtml(porModalidad) {
+    var modalidades = Object.keys(porModalidad).sort(function (a, b) { return a.localeCompare(b, "es"); });
+    var filas = "";
+    modalidades.forEach(function (modalidad) {
+      var programas = Object.keys(porModalidad[modalidad]).sort(function (a, b) { return a.localeCompare(b, "es"); });
+      filas += '<tr class="modalidad-row"><td colspan="5">' + escapeHtml(modalidad) + "</td></tr>";
+      programas.forEach(function (programa) {
+        var p = porModalidad[modalidad][programa];
+        filas += "<tr class=\"programa-row\">" +
+          "<td>" + escapeHtml(programa) + "</td>" +
+          '<td class="num-cell">' + fmtNum(p.hogares) + "</td>" +
+          '<td class="num-cell">$' + fmtNum(Math.round(p.valor)) + "</td>" +
+          '<td class="num-cell">' + fmtNum(p.legalizados) + "</td>" +
+          '<td class="num-cell">$' + fmtNum(Math.round(p.valorLegalizado)) + "</td>" +
+          "</tr>";
+      });
+    });
+    return '<table class="m-breakdown"><thead><tr>' +
+      "<th></th><th class=\"num-cell\">Hogares asig.</th><th class=\"num-cell\">Valor asig.</th>" +
+      "<th class=\"num-cell\">Legalizados</th><th class=\"num-cell\">Valor legalizado</th>" +
+      "</tr></thead><tbody>" + filas + "</tbody></table>";
   }
 
   function subBuildMap() {
@@ -4323,9 +4355,7 @@
       var d = danio[m.departamento + "|" + m.municipio] || {};
       var card = document.createElement("div");
       card.className = "m-card st-bajo";
-      var tagsHtml = function (items) {
-        return items.length ? items.map(function (v) { return '<span class="tag">' + escapeHtml(v) + "</span>"; }).join(" ") : "—";
-      };
+      var key = m.departamento + "|" + m.municipio;
       card.innerHTML =
         '<div class="m-name">' + escapeHtml(m.municipio) + '<span class="name-sub"> · ' + escapeHtml(m.departamento) + "</span></div>" +
         '<div class="m-row"><span>Hogares asignados</span><b>' + fmtNum(m.hogares) + "</b></div>" +
@@ -4334,9 +4364,17 @@
         '<div class="m-row"><span>Valor subsidios legalizados</span><b>$' + fmtNum(Math.round(m.valorLegalizado)) + "</b></div>" +
         '<div class="m-row"><span>Viviendas destruidas</span><b>' + (d.destruidas !== null && d.destruidas !== undefined ? fmtNum(d.destruidas) : "—") + "</b></div>" +
         '<div class="m-row"><span>Viviendas averiadas</span><b>' + (d.averiadas !== null && d.averiadas !== undefined ? fmtNum(d.averiadas) : "—") + "</b></div>" +
-        '<div class="m-row m-row-tags"><span>Programas</span></div><div class="m-tags">' + tagsHtml(m.programas) + "</div>" +
-        '<div class="m-row m-row-tags"><span>Modalidades</span></div><div class="m-tags">' + tagsHtml(m.modalidades) + "</div>";
+        '<div class="m-more" data-key="' + escapeHtml(key) + '">▸ Ver desglose por modalidad y programa</div>' +
+        '<div class="m-more-content">' + subDesgloseHtml(m.porModalidad) + "</div>";
       cardGrid.appendChild(card);
+
+      var toggle = card.querySelector(".m-more");
+      var content = card.querySelector(".m-more-content");
+      if (subOpenCards[key]) content.classList.add("open");
+      toggle.addEventListener("click", function () {
+        subOpenCards[key] = !subOpenCards[key];
+        content.classList.toggle("open", subOpenCards[key]);
+      });
     });
   }
 

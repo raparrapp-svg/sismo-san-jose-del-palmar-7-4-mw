@@ -341,6 +341,12 @@
   .card-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
   .card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 10px; }
   .card-grid.wide { grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); }
+  /* Subsidios: el desglose necesita mas ancho; en movil se desplaza dentro de la tarjeta. */
+  #sub-card-grid { grid-template-columns: repeat(auto-fill, minmax(min(100%, 560px), 1fr)); align-items: start; }
+  #sub-card-grid .m-card { min-width: 0; }
+  #sub-card-grid .m-row { flex-wrap: wrap; gap: 2px 12px; }
+  #sub-card-grid .m-row b { margin-left: auto; }
+  #sub-card-grid .m-more-content { max-width: 100%; overflow-x: auto; white-space: normal; }
   .m-breakdown { width: 100%; border-collapse: collapse; font-size: 11px; margin-top: 6px; }
   .m-breakdown th, .m-breakdown td { text-align: center; padding: 6px 5px; }
   .m-breakdown thead th {
